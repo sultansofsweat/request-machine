@@ -36,6 +36,32 @@
 		}
 		return $db->close();
 	}
+	//Function for running VACUUM command to clean up database
+	function optimize_db($db)
+	{
+		$returns=array(false,-1,-1);
+		$returns[1]=filesize($db);
+		$dbase=open_db($db,SQLITE3_OPEN_READWRITE);
+		if(!is_a($dbase,"SQLite3"))
+		{
+			trigger_error("Failed to open database $db in write mode.",E_USER_WARNING);
+			$returns[2]=$returns[1];
+			return $returns;
+		}
+		$debug=$dbase->exec("VACUUM");
+		sleep(10);
+		if($debug === true)
+		{
+			$returns[0]=true;
+			$returns[2]=filesize($db);
+		}
+		else
+		{
+			$returns[2]=$returns[1];
+		}
+		close_db($dbase);
+		return $returns;
+	}
 ?>
 <?php
 	//System functions
@@ -918,19 +944,245 @@
 ?>
 <?php
 	//Logging functions
+	
+	//Function for inserting system log
+	function insert_system_log($db,$ip,$time,$page,$text)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function insert_system_log is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		if(get_setting($db,"syslog") == "n")
+		{
+			return true;
+		}
+		$statement=$db->prepare("INSERT INTO system(ip,time,page,text) VALUES (?,?,?,?)");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(1,$ip,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(2,$time,SQLITE3_INTEGER);
+				if($debug !== false)
+				{
+					$debug=$statement->bindValue(3,$page,SQLITE3_TEXT);
+					if($debug !== false)
+					{
+						$debug=$statement->bindValue(4,$text,SQLITE3_TEXT);
+						if($debug !== false)
+						{
+							//Execute statement
+							$result=$statement->execute();
+							if($result !== false)
+							{
+								//Close statement
+								$statement->close();
+								unset($statement);
+								return true;
+							}
+							//Failed to execute statement
+							trigger_error("Failed to execute statement in function insert_system_log.",E_USER_ERROR);
+							goto failure;
+						}
+					}
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function insert_system_log.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function insert_system_log.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
+	//Function for marking system log as read
+	function mark_system_log_as_read($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function mark_system_log_as_read is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("UPDATE system SET unread = 1");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return true;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function mark_system_log_as_read.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function mark_system_log_as_read.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
+	//Function for clearing system log
+	function clear_system_log($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function clear_system_log is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("DELETE FROM system");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return true;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function clear_system_log.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function clear_system_log.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
+	//Function for getting system log
+	function get_system_logs($db)
+	{
+	}
+	//Function for getting unread system logs
+	function get_unread_system_logs($db)
+	{
+	}
+	//Function for getting system logs for a specific date
+	function get_system_logs_by_date($db,$start,$end)
+	{
+	}
 ?>
 <?php
 	//Music functions
+	
+	//Function for inserting music
+	//Function for updating song details
+	//Function for updating list associated with song
+	//Function for updating request counts for a song
+	//Function for deleting a song
+	//Function for getting all songs
+	//Function for counting all songs
+	//Function for counting all song lists
+	//Function for getting all songs on a list
+	//Function for getting songs by first letter of artist
+	//Function for getting songs by query
+	//Function for getting new songs
+	//Function for getting popular songs
+	
+	//Function for getting all deleted songs
+	//Function for getting a deleted song
+	//Function for restoring a deleted song
+	//Function for permanently deleting a song
 ?>
 <?php
 	//Request functions
+	
+	//Function for inserting a request
+	//Function for updating request name
+	//Function for updating request comment
+	//Function for updating request status
+	//Function for converting request from ID mode to TEXT mode
+	//Function for converting request to CUSTOM mode
+	//Function for deleting a request
+	//Function for getting all requests
+	//Function for getting a request
+	//Function for getting all requests from a user
+	//Function for getting all requests from an IP
+	//Function for getting all requests of a specific status
+	
+	//Function for getting all deleted requests
+	//Function for getting a deleted request
+	//Function for restoring a deleted request
+	//Function for permanently deleting a request
 ?>
 <?php
 	//Report functions
+	
+	//Function for inserting a report
+	//Function for marking a report as seen
+	//Function for deleting a report
+	//Function for getting all reports
+	//Function for getting a report
+	//Function for getting unread reports
 ?>
 <?php
 	//Banning functions
+	
+	//Function for inserting a username ban
+	//Function for updating a username ban
+	//Function for deleting a username ban
+	//Function for getting all username bans
+	//Function for getting all bans for a username
+	//Function for getting active ban for a username
+	
+	//Function for inserting an IP ban
+	//Function for updating an IP ban
+	//Function for deleting an IP ban
+	//Function for getting all IP bans
+	//Function for getting all bans for an IP
+	//Function for getting active ban for an IP
+	
+	//Function for getting a user-IP mapping
+	//Function for inserting a new/updating an existing user-IP mapping
+	//Function for getting all IPs associated with a username
+	//Function for getting all usernames associated with an IP
 ?>
 <?php
 	//Updating functions
+	
+	//Function for getting list of upgrade packages
+	//Function for getting upgrade package
+	//Function for unpacking upgrade package
+	//Function for running pre-processor
+	//Function for replacing system files
+	//Function for upgrading databases
+	//Function for running post-processor
+	//Function to clean up remaining mess
+?>
+<?php
+	//Security functions
+	
+	//Function for checking admin flag
+	//Function for checking IP address
+	//Function for checking useragent
+	//Function for checking identifier
+	//Primary security checking function
 ?>

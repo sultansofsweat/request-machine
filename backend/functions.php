@@ -1080,20 +1080,1006 @@
 	//Function for getting system log
 	function get_system_logs($db)
 	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_system_logs is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Create empty storage array
+		$logs=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT ip,time,page,text,unread FROM system");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Setup default
+					$logentry=array("ip" => "127.0.0.1", "time" => 0, "page" => "ERROR", "text" => "Failed to obtain information. Drop kick a can of Pepsi Lime.", "unread" => 0);
+					//Get data from result
+					if(isset($entry["IP"]))
+					{
+						$logentry["ip"]=$entry["IP"];
+					}
+					if(isset($entry["Time"]))
+					{
+						$logentry["time"]=$entry["Time"];
+					}
+					if(isset($entry["Page"]))
+					{
+						$logentry["page"]=$entry["Page"];
+					}
+					if(isset($entry["Text"]))
+					{
+						$logentry["text"]=$entry["Text"];
+					}
+					if(isset($entry["Unread"]))
+					{
+						$logentry["unread"]=$entry["Unread"];
+					}
+					//Make log entry object
+					$entryobject=new SystemLogEntry($logentry["ip"],$logentry["time"],$logentry["page"],$logentry["text"],$logentry["unread"]);
+					//Add object to list
+					$logs[]=$entryobject;
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $logs;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function get_system_logs.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_system_logs.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $logs;
 	}
 	//Function for getting unread system logs
 	function get_unread_system_logs($db)
 	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_unread_system_logs is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Create empty storage array
+		$logs=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT ip,time,page,text FROM system WHERE unread = 1");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Setup default
+					$logentry=array("ip" => "127.0.0.1", "time" => 0, "page" => "ERROR", "text" => "Failed to obtain information. Drop kick a can of Pepsi Lime.", "unread" => 1);
+					//Get data from result
+					if(isset($entry["IP"]))
+					{
+						$logentry["ip"]=$entry["IP"];
+					}
+					if(isset($entry["Time"]))
+					{
+						$logentry["time"]=$entry["Time"];
+					}
+					if(isset($entry["Page"]))
+					{
+						$logentry["page"]=$entry["Page"];
+					}
+					if(isset($entry["Text"]))
+					{
+						$logentry["text"]=$entry["Text"];
+					}
+					//Make log entry object
+					$entryobject=new SystemLogEntry($logentry["ip"],$logentry["time"],$logentry["page"],$logentry["text"],$logentry["unread"]);
+					//Add object to list
+					$logs[]=$entryobject;
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $logs;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function get_unread_system_logs.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_unread_system_logs.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $logs;
 	}
 	//Function for getting system logs for a specific date
 	function get_system_logs_by_date($db,$start,$end)
 	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_system_logs_by_date is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Create empty storage array
+		$logs=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT ip,time,page,text,unread FROM system WHERE time >= ? AND time <= ?");
+		if($statement !== false)
+		{
+			//Bind values to statement
+			$debug=$statement->bindValue(1,$start,SQLITE3_INTEGER);
+			if($debug === true)
+			{
+				$debug=$statement->bindValue(2,$end,SQLITE3_INTEGER);
+				if($debug === true)
+				{
+					//Execute statement
+					$result=$statement->execute();
+					if($result !== false)
+					{
+						//Loop through all entries
+						while($entry=$result->fetchArray(SQLITE3_ASSOC))
+						{
+							//Setup default
+							$logentry=array("ip" => "127.0.0.1", "time" => 0, "page" => "ERROR", "text" => "Failed to obtain information. Drop kick a can of Pepsi Lime.", "unread" => 1);
+							//Get data from result
+							if(isset($entry["IP"]))
+							{
+								$logentry["ip"]=$entry["IP"];
+							}
+							if(isset($entry["Time"]))
+							{
+								$logentry["time"]=$entry["Time"];
+							}
+							if(isset($entry["Page"]))
+							{
+								$logentry["page"]=$entry["Page"];
+							}
+							if(isset($entry["Text"]))
+							{
+								$logentry["text"]=$entry["Text"];
+							}
+							//Make log entry object
+							$entryobject=new SystemLogEntry($logentry["ip"],$logentry["time"],$logentry["page"],$logentry["text"],$logentry["unread"]);
+							//Add object to list
+							$logs[]=$entryobject;
+						}
+						//Close statement
+						$statement->close();
+						unset($statement);
+						return $logs;
+					}
+					//Failed to execute statement
+					trigger_error("Failed to execute statement in function get_system_logs_by_date.",E_USER_ERROR);
+					goto failure;
+				}
+			}
+			//Failed to bind values to statement
+			trigger_error("Failed to bind values to statement in function get_system_logs_by_date.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_system_logs_by_date.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $logs;
+	}
+	
+	//Function for inserting error log
+	function insert_error_log($db,$ip,$time,$page,$error,$text)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function insert_error_log is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		if(get_setting($db,"errlog") == "n")
+		{
+			return true;
+		}
+		$statement=$db->prepare("INSERT INTO error(ip,time,page,text,error) VALUES (?,?,?,?,?)");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(1,$ip,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(2,$time,SQLITE3_INTEGER);
+				if($debug !== false)
+				{
+					$debug=$statement->bindValue(3,$page,SQLITE3_TEXT);
+					if($debug !== false)
+					{
+						$debug=$statement->bindValue(4,$text,SQLITE3_TEXT);
+						if($debug !== false)
+						{
+							$debug=$statement->bindValue(5,$error,SQLITE3_INTEGER);
+							if($debug !== false)
+							{
+								//Execute statement
+								$result=$statement->execute();
+								if($result !== false)
+								{
+									//Close statement
+									$statement->close();
+									unset($statement);
+									return true;
+								}
+								//Failed to execute statement
+								trigger_error("Failed to execute statement in function insert_error_log.",E_USER_ERROR);
+								goto failure;
+							}
+						}
+					}
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function insert_error_log.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function insert_error_log.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
+	//Function for marking error log as read
+	function mark_error_log_as_read($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function mark_error_log_as_read is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("UPDATE error SET unread = 1");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return true;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function mark_error_log_as_read.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function mark_error_log_as_read.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
+	//Function for clearing error log
+	function clear_error_log($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function clear_error_log is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("DELETE FROM error");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return true;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function clear_error_log.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function clear_error_log.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
+	//Function for getting error log
+	function get_error_logs($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_error_logs is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Create empty storage array
+		$logs=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT ip,time,page,text,unread,error FROM error");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Setup default
+					$logentry=array("ip" => "127.0.0.1", "time" => 0, "page" => "ERROR", "error" => E_RECOVERABLE_ERROR, "text" => "Failed to obtain information. Drop kick a can of Pepsi Lime.", "unread" => 0);
+					//Get data from result
+					if(isset($entry["IP"]))
+					{
+						$logentry["ip"]=$entry["IP"];
+					}
+					if(isset($entry["Time"]))
+					{
+						$logentry["time"]=$entry["Time"];
+					}
+					if(isset($entry["Page"]))
+					{
+						$logentry["page"]=$entry["Page"];
+					}
+					if(isset($entry["Text"]))
+					{
+						$logentry["text"]=$entry["Text"];
+					}
+					if(isset($entry["Unread"]))
+					{
+						$logentry["unread"]=$entry["Unread"];
+					}
+					if(isset($entry["Error"]))
+					{
+						$logentry["error"]=$entry["Error"];
+					}
+					//Make log entry object
+					$entryobject=new ErrorLogEntry($logentry["ip"],$logentry["time"],$logentry["page"],$logentry["error"],$logentry["text"],$logentry["unread"]);
+					//Add object to list
+					$logs[]=$entryobject;
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $logs;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function get_error_logs.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_error_logs.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $logs;
+	}
+	//Function for getting unread error logs
+	function get_unread_error_logs($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_unread_error_logs is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Create empty storage array
+		$logs=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT ip,time,page,text,error FROM error WHERE unread = 1");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Setup default
+					$logentry=array("ip" => "127.0.0.1", "time" => 0, "page" => "ERROR", "error" => E_RECOVERABLE_ERROR, "text" => "Failed to obtain information. Drop kick a can of Pepsi Lime.", "unread" => 1);
+					//Get data from result
+					if(isset($entry["IP"]))
+					{
+						$logentry["ip"]=$entry["IP"];
+					}
+					if(isset($entry["Time"]))
+					{
+						$logentry["time"]=$entry["Time"];
+					}
+					if(isset($entry["Page"]))
+					{
+						$logentry["page"]=$entry["Page"];
+					}
+					if(isset($entry["Text"]))
+					{
+						$logentry["text"]=$entry["Text"];
+					}
+					if(isset($entry["Error"]))
+					{
+						$logentry["error"]=$entry["Error"];
+					}
+					//Make log entry object
+					$entryobject=new ErrorLogEntry($logentry["ip"],$logentry["time"],$logentry["page"],$logentry["error"],$logentry["text"],$logentry["unread"]);
+					//Add object to list
+					$logs[]=$entryobject;
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $logs;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function get_unread_error_logs.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_unread_error_logs.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $logs;
+	}
+	//Function for getting error logs for a specific date
+	function get_error_logs_by_date($db,$start,$end)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_error_logs_by_date is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Create empty storage array
+		$logs=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT ip,time,page,text,unread FROM error WHERE time >= ? AND time <= ?");
+		if($statement !== false)
+		{
+			//Bind values to statement
+			$debug=$statement->bindValue(1,$start,SQLITE3_INTEGER);
+			if($debug === true)
+			{
+				$debug=$statement->bindValue(2,$end,SQLITE3_INTEGER);
+				if($debug === true)
+				{
+					//Execute statement
+					$result=$statement->execute();
+					if($result !== false)
+					{
+						//Loop through all entries
+						while($entry=$result->fetchArray(SQLITE3_ASSOC))
+						{
+							//Setup default
+							$logentry=array("ip" => "127.0.0.1", "time" => 0, "page" => "ERROR", "error" => E_RECOVERABLE_ERROR, "text" => "Failed to obtain information. Drop kick a can of Pepsi Lime.", "unread" => 0);
+							//Get data from result
+							if(isset($entry["IP"]))
+							{
+								$logentry["ip"]=$entry["IP"];
+							}
+							if(isset($entry["Time"]))
+							{
+								$logentry["time"]=$entry["Time"];
+							}
+							if(isset($entry["Page"]))
+							{
+								$logentry["page"]=$entry["Page"];
+							}
+							if(isset($entry["Text"]))
+							{
+								$logentry["text"]=$entry["Text"];
+							}
+							if(isset($entry["Unread"]))
+							{
+								$logentry["unread"]=$entry["Unread"];
+							}
+							if(isset($entry["Error"]))
+							{
+								$logentry["error"]=$entry["Error"];
+							}
+							//Make log entry object
+							$entryobject=new ErrorLogEntry($logentry["ip"],$logentry["time"],$logentry["page"],$logentry["error"],$logentry["text"],$logentry["unread"]);
+							//Add object to list
+							$logs[]=$entryobject;
+						}
+						//Close statement
+						$statement->close();
+						unset($statement);
+						return $logs;
+					}
+					//Failed to execute statement
+					trigger_error("Failed to execute statement in function get_error_logs_by_date.",E_USER_ERROR);
+					goto failure;
+				}
+			}
+			//Failed to bind values to statement
+			trigger_error("Failed to bind values to statement in function get_error_logs_by_date.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_error_logs_by_date.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $logs;
+	}
+	
+	//Function for inserting login log
+	function insert_login_log($db,$ip,$browser,$time,$success)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function insert_login_log is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		if(get_setting($db,"inlog") == "n")
+		{
+			return true;
+		}
+		$statement=$db->prepare("INSERT INTO login(ip,time,browser,status) VALUES (?,?,?,?)");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(1,$ip,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(2,$time,SQLITE3_INTEGER);
+				if($debug !== false)
+				{
+					$debug=$statement->bindValue(3,$browser,SQLITE3_TEXT);
+					if($debug !== false)
+					{
+						$debug=$statement->bindValue(4,$success,SQLITE3_INTEGER);
+						if($debug !== false)
+						{
+							//Execute statement
+							$result=$statement->execute();
+							if($result !== false)
+							{
+								//Close statement
+								$statement->close();
+								unset($statement);
+								return true;
+							}
+							//Failed to execute statement
+							trigger_error("Failed to execute statement in function insert_login_log.",E_USER_ERROR);
+							goto failure;
+						}
+					}
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function insert_login_log.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function insert_login_log.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
+	//Function for marking login log as read
+	function mark_login_log_as_read($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function mark_login_log_as_read is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("UPDATE login SET unread = 1");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return true;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function mark_login_log_as_read.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function mark_login_log_as_read.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
+	//Function for clearing login log
+	function clear_login_log($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function clear_login_log is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("DELETE FROM login");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return true;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function clear_login_log.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function clear_login_log.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
+	//Function for getting login log
+	function get_login_logs($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_login_logs is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Create empty storage array
+		$logs=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT ip,time,browser,status,unread FROM login");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Setup default
+					$logentry=array("ip" => "127.0.0.1", "time" => 0, "browser" => "ERROR", "status" => 0, "unread" => 0);
+					//Get data from result
+					if(isset($entry["IP"]))
+					{
+						$logentry["ip"]=$entry["IP"];
+					}
+					if(isset($entry["Time"]))
+					{
+						$logentry["time"]=$entry["Time"];
+					}
+					if(isset($entry["Browser"]))
+					{
+						$logentry["browser"]=$entry["Browser"];
+					}
+					if(isset($entry["Status"]))
+					{
+						$logentry["status"]=$entry["Status"];
+					}
+					if(isset($entry["Unread"]))
+					{
+						$logentry["unread"]=$entry["Unread"];
+					}
+					//Make log entry object
+					$entryobject=new LoginLogEntry($logentry["ip"],$logentry["browser"],$logentry["time"],$logentry["status"],$logentry["unread"]);
+					//Add object to list
+					$logs[]=$entryobject;
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $logs;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function get_login_logs.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_login_logs.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $logs;
+	}
+	//Function for getting unread login logs
+	function get_unread_login_logs($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_unread_login_logs is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Create empty storage array
+		$logs=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT ip,time,browser,status FROM system WHERE unread = 1");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Setup default
+					$logentry=array("ip" => "127.0.0.1", "time" => 0, "browser" => "ERROR", "status" => 0, "unread" => 1);
+					//Get data from result
+					if(isset($entry["IP"]))
+					{
+						$logentry["ip"]=$entry["IP"];
+					}
+					if(isset($entry["Time"]))
+					{
+						$logentry["time"]=$entry["Time"];
+					}
+					if(isset($entry["Browser"]))
+					{
+						$logentry["browser"]=$entry["Browser"];
+					}
+					if(isset($entry["Status"]))
+					{
+						$logentry["status"]=$entry["Status"];
+					}
+					//Make log entry object
+					$entryobject=new LoginLogEntry($logentry["ip"],$logentry["browser"],$logentry["time"],$logentry["status"],$logentry["unread"]);
+					//Add object to list
+					$logs[]=$entryobject;
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $logs;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function get_unread_login_logs.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_unread_login_logs.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $logs;
+	}
+	//Function for getting failed login logs
+	function get_failed_login_logs($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_failed_login_logs is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Create empty storage array
+		$logs=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT ip,time,browser,unread FROM login WHERE status = 0");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Setup default
+					$logentry=array("ip" => "127.0.0.1", "time" => 0, "browser" => "ERROR", "status" => 0, "unread" => 0);
+					//Get data from result
+					if(isset($entry["IP"]))
+					{
+						$logentry["ip"]=$entry["IP"];
+					}
+					if(isset($entry["Time"]))
+					{
+						$logentry["time"]=$entry["Time"];
+					}
+					if(isset($entry["Browser"]))
+					{
+						$logentry["browser"]=$entry["Browser"];
+					}
+					if(isset($entry["Unread"]))
+					{
+						$logentry["unread"]=$entry["Unread"];
+					}
+					//Make log entry object
+					$entryobject=new LoginLogEntry($logentry["ip"],$logentry["browser"],$logentry["time"],$logentry["status"],$logentry["unread"]);
+					//Add object to list
+					$logs[]=$entryobject;
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $logs;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function get_failed_login_logs.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_failed_login_logs.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $logs;
+	}
+	//Function for getting system logs for a specific date
+	function get_login_logs_by_date($db,$start,$end)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_login_logs_by_date is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Create empty storage array
+		$logs=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT ip,time,browser,status,unread FROM login WHERE time >= ? AND time <= ?");
+		if($statement !== false)
+		{
+			//Bind values to statement
+			$debug=$statement->bindValue(1,$start,SQLITE3_INTEGER);
+			if($debug === true)
+			{
+				$debug=$statement->bindValue(2,$end,SQLITE3_INTEGER);
+				if($debug === true)
+				{
+					//Execute statement
+					$result=$statement->execute();
+					if($result !== false)
+					{
+						//Loop through all entries
+						while($entry=$result->fetchArray(SQLITE3_ASSOC))
+						{
+							//Setup default
+							$logentry=array("ip" => "127.0.0.1", "time" => 0, "browser" => "ERROR", "status" => 0, "unread" => 0);
+							//Get data from result
+							if(isset($entry["IP"]))
+							{
+								$logentry["ip"]=$entry["IP"];
+							}
+							if(isset($entry["Time"]))
+							{
+								$logentry["time"]=$entry["Time"];
+							}
+							if(isset($entry["Browser"]))
+							{
+								$logentry["browser"]=$entry["Browser"];
+							}
+							if(isset($entry["Status"]))
+							{
+								$logentry["status"]=$entry["Status"];
+							}
+							if(isset($entry["Unread"]))
+							{
+								$logentry["unread"]=$entry["Unread"];
+							}
+							//Make log entry object
+							$entryobject=new LoginLogEntry($logentry["ip"],$logentry["browser"],$logentry["time"],$logentry["status"],$logentry["unread"]);
+							//Add object to list
+							$logs[]=$entryobject;
+						}
+						//Close statement
+						$statement->close();
+						unset($statement);
+						return $logs;
+					}
+					//Failed to execute statement
+					trigger_error("Failed to execute statement in function get_login_logs_by_date.",E_USER_ERROR);
+					goto failure;
+				}
+			}
+			//Failed to bind values to statement
+			trigger_error("Failed to bind values to statement in function get_login_logs_by_date.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_login_logs_by_date.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $logs;
 	}
 ?>
 <?php
 	//Music functions
 	
-	//Function for inserting music
+	//Function for inserting song
 	//Function for updating song details
 	//Function for updating list associated with song
 	//Function for updating request counts for a song

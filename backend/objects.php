@@ -156,6 +156,15 @@
 			}
 			return $this->details;
 		}
+		public function getRawDetails()
+		{
+			$out=array();
+			foreach(array_keys($this->details) as $key)
+			{
+				$out[]="$key=" . $this->details[$key];
+			}
+			return implode("|",$out);
+		}
 		public function getAdded()
 		{
 			return $this->added;

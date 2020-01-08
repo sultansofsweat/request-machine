@@ -216,7 +216,7 @@
 		if(!is_a($db,"SQLite3"))
 		{
 			trigger_error("Handle passed to function get_all_settings is not a valid database.",E_USER_ERROR);
-			return false;
+			return array();
 		}
 		//Initialize set of defaults
 		$settings=array();
@@ -340,7 +340,7 @@
 		if(!is_a($db,"SQLite3"))
 		{
 			trigger_error("Handle passed to function get_all_previous is not a valid database.",E_USER_ERROR);
-			return false;
+			return array();
 		}
 		//Initialize set of defaults
 		$settings=array();
@@ -480,7 +480,7 @@
 		if(!is_a($db,"SQLite3"))
 		{
 			trigger_error("Handle passed to function get_all_defaults is not a valid database.",E_USER_ERROR);
-			return false;
+			return array();
 		}
 		//Initialize set of defaults
 		$settings=array();
@@ -580,7 +580,7 @@
 		if(!is_a($db,"SQLite3"))
 		{
 			trigger_error("Handle passed to function get_all_obsolete is not a valid database.",E_USER_ERROR);
-			return false;
+			return array();
 		}
 		//Initialize set of defaults
 		$settings=array();
@@ -812,7 +812,7 @@
 		if(!is_a($db,"SQLite3"))
 		{
 			trigger_error("Handle passed to function get_version_history is not a valid database.",E_USER_ERROR);
-			return false;
+			return array();
 		}
 		//Create empty storage array
 		$infos=array();
@@ -888,7 +888,7 @@
 		if(!is_a($db,"SQLite3"))
 		{
 			trigger_error("Handle passed to function get_build_codes is not a valid database.",E_USER_ERROR);
-			return false;
+			return array();
 		}
 		//Create empty storage array
 		$infos=array();
@@ -929,17 +929,6 @@
 		}
 		//Exit
 		return $infos;
-	}
-	
-	//Function to set initial admin password
-	function set_initial_password($db)
-	{
-		if(!is_a($db,"SQLite3"))
-		{
-			trigger_error("Handle passed to function set_initial_password is not a valid database.",E_USER_ERROR);
-			return false;
-		}
-		return update_setting($db,"passwd",password_hash("admin",PASSWORD_DEFAULT));
 	}
 ?>
 <?php
@@ -2080,23 +2069,1155 @@
 	//Music functions
 	
 	//Function for inserting song
+	function insert_song($db,$list,$details)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function insert_song is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("INSERT INTO songs(list,details,added) VALUES (?,?,?)");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(1,$list,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(3,time(),SQLITE3_INTEGER);
+				if($debug !== false)
+				{
+					$debug=$statement->bindValue(2,$details,SQLITE3_TEXT);
+					if($debug !== false)
+					{
+						//Execute statement
+						$result=$statement->execute();
+						if($result !== false)
+						{
+							//Close statement
+							$statement->close();
+							unset($statement);
+							return true;
+						}
+						//Failed to execute statement
+						trigger_error("Failed to execute statement in function insert_song.",E_USER_ERROR);
+						goto failure;
+					}
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function insert_song.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function insert_song.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for updating song details
+	function update_song($db,$id,$details)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function update_song is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("UPDATE songs SET details = ? WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(2,$details,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+				if($debug !== false)
+				{
+					//Execute statement
+					$result=$statement->execute();
+					if($result !== false)
+					{
+						//Close statement
+						$statement->close();
+						unset($statement);
+						return true;
+					}
+					//Failed to execute statement
+					trigger_error("Failed to execute statement in function update_song.",E_USER_ERROR);
+					goto failure;
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function update_song.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function update_song.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for updating list associated with song
+	function change_list($db,$id,$newlist)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function change_list is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("UPDATE songs SET list = ? WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(2,$list,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+				if($debug !== false)
+				{
+					//Execute statement
+					$result=$statement->execute();
+					if($result !== false)
+					{
+						//Close statement
+						$statement->close();
+						unset($statement);
+						return true;
+					}
+					//Failed to execute statement
+					trigger_error("Failed to execute statement in function change_list.",E_USER_ERROR);
+					goto failure;
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function change_list.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function change_list.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for updating request counts for a song
+	function update_request_count($db,$id)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function update_request_count is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("UPDATE songs SET count = count + 1, lastreq = ? WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(2,time(),SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+				if($debug !== false)
+				{
+					//Execute statement
+					$result=$statement->execute();
+					if($result !== false)
+					{
+						//Close statement
+						$statement->close();
+						unset($statement);
+						return true;
+					}
+					//Failed to execute statement
+					trigger_error("Failed to execute statement in function update_request_count.",E_USER_ERROR);
+					goto failure;
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function update_request_count.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function update_request_count.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for deleting a song
+	function delete_song($db,$id)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function delete_song is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("DELETE FROM songs WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return true;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function delete_song.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function delete_song.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function delete_song.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for getting all songs
+	function get_all_songs($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_all_songs is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Initialize set of defaults
+		$songs=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,list,details,added,count,lastreq FROM songs");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Set up data format
+					$song=array("id"=>-1,"list"=>"ERROR","details"=>"Failed to obtain song. Microwave something expensive.","added"=>0,"count"=>666,"lastreq"=>0);
+					//Get data from result
+					if(isset($entry["ID"]))
+					{
+						$song["id"]=$entry["ID"];
+					}
+					if(isset($entry["List"]))
+					{
+						$song["list"]=$entry["List"];
+					}
+					if(isset($entry["Details"]))
+					{
+						$song["details"]=$entry["Details"];
+					}
+					if(isset($entry["Added"]))
+					{
+						$song["added"]=$entry["Added"];
+					}
+					if(isset($entry["Count"]))
+					{
+						$song["count"]=$entry["Count"];
+					}
+					if(isset($entry["LastReq"]))
+					{
+						$song["lastreq"]=$entry["LastReq"];
+					}
+					//Create song object
+					$songobject=new Song($song["id"],$song["list"],$song["details"],$song["added"],$song["count"],$song["lastreq"]);
+					//Add object to list
+					$songs[]=$songobject;
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $songs;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function get_all_songs.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_all_songs.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $songs;
+	}
 	//Function for counting all songs
+	function count_all_songs($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function count_all_songs is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Create default
+		$count=0;
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT COUNT(*) as count FROM songs");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Get data from result
+					if(isset($entry["count"]))
+					{
+						$count=max($count,$entry["count"]);
+					}
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $count;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function count_all_songs.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function count_all_songs.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return 0;
+	}
 	//Function for counting all song lists
+	function count_song_lists($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function count_song_lists is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Create default
+		$count=0;
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT COUNT(DISTINCT List) as count FROM songs");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Get data from result
+					if(isset($entry["count"]))
+					{
+						$count=max($count,$entry["count"]);
+					}
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $count;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function count_song_lists.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function count_song_lists.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return 0;
+	}
+	//Function for getting a single song
+	function get_song($db,$id)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_song is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Set up default
+		$song=false;
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT details,added,count,lastreq FROM songs WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Loop through all entries
+					while($entry=$result->fetchArray(SQLITE3_ASSOC))
+					{
+						//Set up data format
+						$song=array("id"=>$id,"list"=>$list,"details"=>"Failed to obtain song. Microwave something expensive.","added"=>0,"count"=>666,"lastreq"=>0);
+						//Get data from result
+						if(isset($entry["List"]))
+						{
+							$song["list"]=$entry["List"];
+						}
+						if(isset($entry["Details"]))
+						{
+							$song["details"]=$entry["Details"];
+						}
+						if(isset($entry["Added"]))
+						{
+							$song["added"]=$entry["Added"];
+						}
+						if(isset($entry["Count"]))
+						{
+							$song["count"]=$entry["Count"];
+						}
+						if(isset($entry["LastReq"]))
+						{
+							$song["lastreq"]=$entry["LastReq"];
+						}
+						//Create song object
+						$songobject=new Song($song["id"],$song["list"],$song["details"],$song["added"],$song["count"],$song["lastreq"]);
+						//Add object to list
+						$song=$songobject;
+					}
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return $song;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function get_song.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_song.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_song.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $song;
+	}
 	//Function for getting all songs on a list
+	function get_songs_by_list($db,$list)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_songs_by_list is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Create default
+		$songs=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,details,added,count,lastreq FROM songs WHERE list = ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,$list,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Loop through all entries
+					while($entry=$result->fetchArray(SQLITE3_ASSOC))
+					{
+						//Set up data format
+						$song=array("id"=>-1,"list"=>$list,"details"=>"Failed to obtain song. Microwave something expensive.","added"=>0,"count"=>666,"lastreq"=>0);
+						//Get data from result
+						if(isset($entry["ID"]))
+						{
+							$song["id"]=$entry["ID"];
+						}
+						if(isset($entry["Details"]))
+						{
+							$song["details"]=$entry["Details"];
+						}
+						if(isset($entry["Added"]))
+						{
+							$song["added"]=$entry["Added"];
+						}
+						if(isset($entry["Count"]))
+						{
+							$song["count"]=$entry["Count"];
+						}
+						if(isset($entry["LastReq"]))
+						{
+							$song["lastreq"]=$entry["LastReq"];
+						}
+						//Create song object
+						$songobject=new Song($song["id"],$song["list"],$song["details"],$song["added"],$song["count"],$song["lastreq"]);
+						//Add object to list
+						$songs[]=$songobject;
+					}
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return $songs;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function get_songs_by_list.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_songs_by_list.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_songs_by_list.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $songs;
+	}
 	//Function for getting songs by first letter of artist
+	function get_songs_by_artist($db,$letter)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_songs_by_artist is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Create default
+		$songs=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,list,details,added,count,lastreq FROM songs WHERE details LIKE ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,"artist=$letter",SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Loop through all entries
+					while($entry=$result->fetchArray(SQLITE3_ASSOC))
+					{
+						//Set up data format
+						$song=array("id"=>-1,"list"=>"ERROR","details"=>"Failed to obtain song. Microwave something expensive.","added"=>0,"count"=>666,"lastreq"=>0);
+						//Get data from result
+						if(isset($entry["ID"]))
+						{
+							$song["id"]=$entry["ID"];
+						}
+						if(isset($entry["List"]))
+						{
+							$song["list"]=$entry["List"];
+						}
+						if(isset($entry["Details"]))
+						{
+							$song["details"]=$entry["Details"];
+						}
+						if(isset($entry["Added"]))
+						{
+							$song["added"]=$entry["Added"];
+						}
+						if(isset($entry["Count"]))
+						{
+							$song["count"]=$entry["Count"];
+						}
+						if(isset($entry["LastReq"]))
+						{
+							$song["lastreq"]=$entry["LastReq"];
+						}
+						//Create song object
+						$songobject=new Song($song["id"],$song["list"],$song["details"],$song["added"],$song["count"],$song["lastreq"]);
+						//Add object to list
+						$songs[]=$songobject;
+					}
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return $songs;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function get_songs_by_artist.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_songs_by_artist.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_songs_by_artist.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $songs;
+	}
 	//Function for getting songs by query
+	function song_query($db,$field,$query,$exact)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function song_query is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Set up output
+		$songs=array();
+		//Get all songs
+		$all=get_all_songs($db);
+		//Loop through all songs
+		foreach($all as $song)
+		{
+			if($exact === true && $song->getDetails($field) == $query)
+			{
+				//Add song to list
+				$songs[]=$song;
+			}
+			elseif($exact === false && strpos(strtolower($song->getDetails($field)),strtolower($query)) !== false)
+			{
+				//Add song to list
+				$songs[]=$song;
+			}
+		}
+		//Return resulting list
+		return $songs;
+	}
 	//Function for getting new songs
+	function get_new_songs($db,$threshold)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_new_songs is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Create default
+		$songs=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,list,details,added,count,lastreq FROM songs WHERE added >= ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,(time()-$threshold),SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Loop through all entries
+					while($entry=$result->fetchArray(SQLITE3_ASSOC))
+					{
+						//Set up data format
+						$song=array("id"=>-1,"list"=>"ERROR","details"=>"Failed to obtain song. Microwave something expensive.","added"=>0,"count"=>666,"lastreq"=>0);
+						//Get data from result
+						if(isset($entry["ID"]))
+						{
+							$song["id"]=$entry["ID"];
+						}
+						if(isset($entry["List"]))
+						{
+							$song["list"]=$entry["List"];
+						}
+						if(isset($entry["Details"]))
+						{
+							$song["details"]=$entry["Details"];
+						}
+						if(isset($entry["Added"]))
+						{
+							$song["added"]=$entry["Added"];
+						}
+						if(isset($entry["Count"]))
+						{
+							$song["count"]=$entry["Count"];
+						}
+						if(isset($entry["LastReq"]))
+						{
+							$song["lastreq"]=$entry["LastReq"];
+						}
+						//Create song object
+						$songobject=new Song($song["id"],$song["list"],$song["details"],$song["added"],$song["count"],$song["lastreq"]);
+						//Add object to list
+						$songs[]=$songobject;
+					}
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return $songs;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function get_setting.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_setting.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_setting.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $songs;
+	}
 	//Function for getting popular songs
+	function get_popular_songs($db,$count,$includezero)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_popular_songs is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Create default
+		$songs=array();
+		if($includezero === true)
+		{
+			$lowerbound=0;
+		}
+		else
+		{
+			$lowerbound=1;
+		}
+		$lastcountseen=-1;
+		$countchange=0;
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,list,details,added,count,lastreq FROM settings WHERE count >= ? ORDER BY count DESC");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,$lowerbound,SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Loop through all entries
+					while($entry=$result->fetchArray(SQLITE3_ASSOC))
+					{
+						//If seen enough count changes, exit loop
+						if($countchange >= $count)
+						{
+							break;
+						}
+						//Set up data format
+						$song=array("id"=>-1,"list"=>"ERROR","details"=>"Failed to obtain song. Microwave something expensive.","added"=>0,"count"=>666,"lastreq"=>0);
+						//Get data from result
+						if(isset($entry["ID"]))
+						{
+							$song["id"]=$entry["ID"];
+						}
+						if(isset($entry["List"]))
+						{
+							$song["list"]=$entry["List"];
+						}
+						if(isset($entry["Details"]))
+						{
+							$song["details"]=$entry["Details"];
+						}
+						if(isset($entry["Added"]))
+						{
+							$song["added"]=$entry["Added"];
+						}
+						if(isset($entry["Count"]))
+						{
+							$song["count"]=$entry["Count"];
+						}
+						if(isset($entry["LastReq"]))
+						{
+							$song["lastreq"]=$entry["LastReq"];
+						}
+						//Create song object
+						$songobject=new Song($song["id"],$song["list"],$song["details"],$song["added"],$song["count"],$song["lastreq"]);
+						//Add object to list
+						$songs[]=$songobject;
+						//If count seen different from last, increment count change
+						if($songobject->getCount() != $lastcountseen)
+						{
+							$lastcountseen=$songobject->getCount();
+							$countchange++;
+						}
+					}
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return $songs;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function get_popular_songs.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_popular_songs.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_popular_songs.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	
 	//Function for getting all deleted songs
+	function get_deleted_songs($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_deleted_songs is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Initialize set of defaults
+		$songs=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,list,details,added,count,lastreq FROM oldsongs");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Set up data format
+					$song=array("id"=>-1,"list"=>"ERROR","details"=>"Failed to obtain song. Microwave something expensive.","added"=>0,"count"=>666,"lastreq"=>0);
+					//Get data from result
+					if(isset($entry["ID"]))
+					{
+						$song["id"]=$entry["ID"];
+					}
+					if(isset($entry["List"]))
+					{
+						$song["list"]=$entry["List"];
+					}
+					if(isset($entry["Details"]))
+					{
+						$song["details"]=$entry["Details"];
+					}
+					if(isset($entry["Added"]))
+					{
+						$song["added"]=$entry["Added"];
+					}
+					if(isset($entry["Count"]))
+					{
+						$song["count"]=$entry["Count"];
+					}
+					if(isset($entry["LastReq"]))
+					{
+						$song["lastreq"]=$entry["LastReq"];
+					}
+					//Create song object
+					$songobject=new Song($song["id"],$song["list"],$song["details"],$song["added"],$song["count"],$song["lastreq"]);
+					//Add object to list
+					$songs[]=$songobject;
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $songs;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function get_deleted_songs.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_deleted_songs.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $songs;
+	}
 	//Function for getting a deleted song
+	function get_deleted_song($db,$id)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_deleted_song is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Set up default
+		$song=false;
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT details,added,count,lastreq FROM oldsongs WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Loop through all entries
+					while($entry=$result->fetchArray(SQLITE3_ASSOC))
+					{
+						//Set up data format
+						$song=array("id"=>$id,"list"=>$list,"details"=>"Failed to obtain song. Microwave something expensive.","added"=>0,"count"=>666,"lastreq"=>0);
+						//Get data from result
+						if(isset($entry["List"]))
+						{
+							$song["list"]=$entry["List"];
+						}
+						if(isset($entry["Details"]))
+						{
+							$song["details"]=$entry["Details"];
+						}
+						if(isset($entry["Added"]))
+						{
+							$song["added"]=$entry["Added"];
+						}
+						if(isset($entry["Count"]))
+						{
+							$song["count"]=$entry["Count"];
+						}
+						if(isset($entry["LastReq"]))
+						{
+							$song["lastreq"]=$entry["LastReq"];
+						}
+						//Create song object
+						$songobject=new Song($song["id"],$song["list"],$song["details"],$song["added"],$song["count"],$song["lastreq"]);
+						//Add object to list
+						$song=$songobject;
+					}
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return $song;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function get_deleted_song.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_deleted_song.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_deleted_song.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $song;
+	}
 	//Function for restoring a deleted song
+	function restore_deleted_song($db,$id)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function restore_deleted_song is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$details=get_deleted_song($db,$id);
+		$statement=$db->prepare("INSERT INTO songs(list,details,added,count,lastreq) VALUES (?,?,?,?,?)");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(1,$details->getList(),SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(2,$details->getRawDetails(),SQLITE3_TEXT);
+				if($debug !== false)
+				{
+					$debug=$statement->bindValue(3,$details->getAdded(),SQLITE3_INTEGER);
+					if($debug !== false)
+					{
+						$debug=$statement->bindValue(4,$details->getCount(),SQLITE3_INTEGER);
+						if($debug !== false)
+						{
+							$debug=$statement->bindValue(5,$details->getLastReq(),SQLITE3_INTEGER);
+							if($debug !== false)
+							{
+								//Execute statement
+								$result=$statement->execute();
+								if($result !== false)
+								{
+									//Close statement
+									$statement->close();
+									unset($statement);
+									return true;
+								}
+								//Failed to execute statement
+								trigger_error("Failed to execute statement in function restore_deleted_song.",E_USER_ERROR);
+								goto failure;
+							}
+						}
+					}
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function restore_deleted_song.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function restore_deleted_song.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
+	//Function for restoring all deleted songs
+	function restore_deleted_songs($db)
+	{
+		$debug=array();
+		$songs=get_deleted_songs($db);
+		foreach($songs as $song)
+		{
+			$debug[]=restore_deleted_song($db,$song->getID());
+		}
+		if(!in_array(false,$debug))
+		{
+			return true;
+		}
+		return false;
+	}
 	//Function for permanently deleting a song
+	function permanently_delete_song($db,$id)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function permanently_delete_song is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("DELETE FROM oldsongs WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return true;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function permanently_delete_song.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function permanently_delete_song.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function permanently_delete_song.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
+	//Function for permanently deleting all songs
+	function permanently_delete_songs($db)
+	{
+		$debug=array();
+		$songs=get_deleted_songs($db);
+		foreach($songs as $song)
+		{
+			$debug[]=permanently_delete_song($db,$song->getID());
+		}
+		if(!in_array(false,$debug))
+		{
+			return true;
+		}
+		return false;
+	}
 ?>
 <?php
 	//Request functions

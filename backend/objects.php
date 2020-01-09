@@ -278,4 +278,55 @@
 			return $this->response;
 		}
 	}
+	
+	class Version
+	{
+		private $buildcode;
+		private $major;
+		private $minor;
+		private $revision;
+		private $tag;
+		private $release;
+		private $installed;
+		
+		public function __construct($b,$j,$n,$r,$t,$d,$i)
+		{
+			$this->buildcode=$b;
+			$this->major=$j;
+			$this->minor=$n;
+			$this->revision=$r;
+			$this->tag=$t;
+			$this->release=$d;
+			$this->installed=$i;
+		}
+		
+		public function getBuildCode()
+		{
+			return $this->buildcode;
+		}
+		public function getMajor()
+		{
+			return $this->major;
+		}
+		public function getMinor()
+		{
+			return $this->minor;
+		}
+		public function getRevision()
+		{
+			return $this->revision;
+		}
+		public function getTag()
+		{
+			return $this->tag;
+		}
+		public function getRelease()
+		{
+			return $this->release;
+		}
+		public function getInstalled()
+		{
+			return $this->installed;
+		}
+	}
 ?>

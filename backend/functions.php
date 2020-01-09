@@ -747,9 +747,9 @@
 			return false;
 		}
 		//Create default
-		$versioninfo=array("build" => 1970010112001, "major" => 0, "minor" => 0, "revision" => 0, "tag" => "", "released" => "An error occurred. Dunk the nearest particle board table in the pool.");
+		$versioninfo=false;
 		//Prepare statement for selecting
-		$statement=$db->prepare("SELECT buildcode,major,minor,revision,tag,release FROM version ORDER BY buildcode DESC LIMIT 1");
+		$statement=$db->prepare("SELECT buildcode,major,minor,revision,tag,release,installed FROM version ORDER BY buildcode DESC LIMIT 1");
 		if($statement !== false)
 		{
 			//Execute statement
@@ -759,31 +759,39 @@
 				//Loop through all entries
 				while($entry=$result->fetchArray(SQLITE3_ASSOC))
 				{
+					//Set up default
+					$verinfo=array("build" => 1970010112001, "major" => 0, "minor" => 0, "revision" => 0, "tag" => "", "released" => "An error occurred. Dunk the nearest particle board table in the pool.","installed"=>0);
 					//Get data from result
 					if(isset($entry["BuildCode"]))
 					{
-						$versioninfo["build"]=$entry["BuildCode"];
+						$verinfo["build"]=$entry["BuildCode"];
 					}
 					if(isset($entry["Major"]))
 					{
-						$versioninfo["major"]=$entry["Major"];
+						$verinfo["major"]=$entry["Major"];
 					}
 					if(isset($entry["Minor"]))
 					{
-						$versioninfo["minor"]=$entry["Minor"];
+						$verinfo["minor"]=$entry["Minor"];
 					}
 					if(isset($entry["Revision"]))
 					{
-						$versioninfo["revision"]=$entry["Revision"];
+						$verinfo["revision"]=$entry["Revision"];
 					}
 					if(isset($entry["Tag"]))
 					{
-						$versioninfo["tag"]=$entry["Tag"];
+						$verinfo["tag"]=$entry["Tag"];
 					}
 					if(isset($entry["Release"]))
 					{
-						$versioninfo["released"]=$entry["Release"];
+						$verinfo["released"]=$entry["Release"];
 					}
+					if(isset($entry["Installed"]))
+					{
+						$verinfo["installed"]=$entry["Installed"];
+					}
+					//Create version object
+					$versioninfo=new Version($verinfo["build"],$verinfo["major"],$verinfo["minor"],$verinfo["revision"],$verinfo["tag"],$verinfo["released"],$verinfo["installed"]);
 				}
 				//Close statement
 				$statement->close();
@@ -858,8 +866,10 @@
 					{
 						$versioninfo["installed"]=$entry["Installed"];
 					}
+					//Create version object
+					$versionobject=new Version($verinfo["build"],$verinfo["major"],$verinfo["minor"],$verinfo["revision"],$verinfo["tag"],$verinfo["released"],$verinfo["installed"]);
 					//Add info to list
-					$infos[]=$versioninfo;
+					$infos[]=$versionobject;
 				}
 				//Close statement
 				$statement->close();
@@ -1072,7 +1082,7 @@
 		if(!is_a($db,"SQLite3"))
 		{
 			trigger_error("Handle passed to function get_system_logs is not a valid database.",E_USER_ERROR);
-			return false;
+			return array();
 		}
 		//Create empty storage array
 		$logs=array();
@@ -1142,7 +1152,7 @@
 		if(!is_a($db,"SQLite3"))
 		{
 			trigger_error("Handle passed to function get_unread_system_logs is not a valid database.",E_USER_ERROR);
-			return false;
+			return array();
 		}
 		//Create empty storage array
 		$logs=array();
@@ -1208,7 +1218,7 @@
 		if(!is_a($db,"SQLite3"))
 		{
 			trigger_error("Handle passed to function get_system_logs_by_date is not a valid database.",E_USER_ERROR);
-			return false;
+			return array();
 		}
 		//Create empty storage array
 		$logs=array();
@@ -1423,7 +1433,7 @@
 		if(!is_a($db,"SQLite3"))
 		{
 			trigger_error("Handle passed to function get_error_logs is not a valid database.",E_USER_ERROR);
-			return false;
+			return array();
 		}
 		//Create empty storage array
 		$logs=array();
@@ -1497,7 +1507,7 @@
 		if(!is_a($db,"SQLite3"))
 		{
 			trigger_error("Handle passed to function get_unread_error_logs is not a valid database.",E_USER_ERROR);
-			return false;
+			return array();
 		}
 		//Create empty storage array
 		$logs=array();
@@ -1567,7 +1577,7 @@
 		if(!is_a($db,"SQLite3"))
 		{
 			trigger_error("Handle passed to function get_error_logs_by_date is not a valid database.",E_USER_ERROR);
-			return false;
+			return array();
 		}
 		//Create empty storage array
 		$logs=array();
@@ -1786,7 +1796,7 @@
 		if(!is_a($db,"SQLite3"))
 		{
 			trigger_error("Handle passed to function get_login_logs is not a valid database.",E_USER_ERROR);
-			return false;
+			return array();
 		}
 		//Create empty storage array
 		$logs=array();
@@ -1856,7 +1866,7 @@
 		if(!is_a($db,"SQLite3"))
 		{
 			trigger_error("Handle passed to function get_unread_login_logs is not a valid database.",E_USER_ERROR);
-			return false;
+			return array();
 		}
 		//Create empty storage array
 		$logs=array();
@@ -1922,7 +1932,7 @@
 		if(!is_a($db,"SQLite3"))
 		{
 			trigger_error("Handle passed to function get_failed_login_logs is not a valid database.",E_USER_ERROR);
-			return false;
+			return array();
 		}
 		//Create empty storage array
 		$logs=array();
@@ -1988,7 +1998,7 @@
 		if(!is_a($db,"SQLite3"))
 		{
 			trigger_error("Handle passed to function get_login_logs_by_date is not a valid database.",E_USER_ERROR);
-			return false;
+			return array();
 		}
 		//Create empty storage array
 		$logs=array();

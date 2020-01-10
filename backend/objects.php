@@ -195,14 +195,14 @@
 		
 		public function __construct($d,$n,$i,$m,$s,$e,$u,$o,$r)
 		{
-			$this->id=$i;
-			$this->name=$i;
+			$this->id=$d;
+			$this->name=$n;
 			$this->ip=$i;
-			$this->mode=$i;
-			$this->time=$i;
-			$this->status=$i;
-			$this->comment=$i;
-			$this->response=$i;
+			$this->mode=$m;
+			$this->time=$e;
+			$this->status=$u;
+			$this->comment=$o;
+			$this->response=$r;
 			switch($m)
 			{
 				case 0:

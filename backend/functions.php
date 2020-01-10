@@ -3233,22 +3233,1408 @@
 	//Request functions
 	
 	//Function for inserting a request
+	function insert_request($db,$name,$ip,$mode,$info,$comment)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function insert_request is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$insertmode=SQLITE3_TEXT;
+		switch($mode)
+		{
+			case 0:
+			$statement=$db->prepare("INSERT INTO requests(name,ip,mode,songid,time,comment) VALUES (?,?,?,?,?,?)");
+			$insertmode=SQLITE3_INTEGER;
+			break;
+			
+			case 1:
+			$statement=$db->prepare("INSERT INTO requests(name,ip,mode,songtext,time,comment) VALUES (?,?,?,?,?,?)");
+			break;
+			
+			case 2:
+			$statement=$db->prepare("INSERT INTO requests(name,ip,mode,custom,time,comment) VALUES (?,?,?,?,?,?)");
+			break;
+			
+			default:
+			trigger_error("Failed to generate statement in function insert_request.",E_USER_ERROR);
+			return false;
+			break;
+		}
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(1,$name,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(2,$ip,SQLITE3_TEXT);
+				if($debug !== false)
+				{
+					$debug=$statement->bindValue(3,$mode,SQLITE3_INTEGER);
+					if($debug !== false)
+					{
+						$debug=$statement->bindValue(4,$info,$insertmode);
+						if($debug !== false)
+						{
+							$debug=$statement->bindValue(5,time(),SQLITE3_INTEGER);
+							if($debug !== false)
+							{
+								$debug=$statement->bindValue(6,$comment,SQLITE3_TEXT);
+								if($debug !== false)
+								{
+									//Execute statement
+									$result=$statement->execute();
+									if($result !== false)
+									{
+										//Close statement
+										$statement->close();
+										unset($statement);
+										return true;
+									}
+									//Failed to execute statement
+									trigger_error("Failed to execute statement in function insert_request.",E_USER_ERROR);
+									goto failure;
+								}
+							}
+						}
+					}
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function insert_request.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function insert_request.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for updating request name
+	function update_request_name($db,$id,$name)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function update_request_name is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("UPDATE requests SET name = ? WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(2,$name,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+				if($debug !== false)
+				{
+					//Execute statement
+					$result=$statement->execute();
+					if($result !== false)
+					{
+						//Close statement
+						$statement->close();
+						unset($statement);
+						return true;
+					}
+					//Failed to execute statement
+					trigger_error("Failed to execute statement in function update_request_name.",E_USER_ERROR);
+					goto failure;
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function update_request_name.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function update_request_name.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for updating request comment
+	function update_request_comment($db,$id,$comment)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function update_request_name is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("UPDATE requests SET comment = ? WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(2,$comment,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+				if($debug !== false)
+				{
+					//Execute statement
+					$result=$statement->execute();
+					if($result !== false)
+					{
+						//Close statement
+						$statement->close();
+						unset($statement);
+						return true;
+					}
+					//Failed to execute statement
+					trigger_error("Failed to execute statement in function update_request_comment.",E_USER_ERROR);
+					goto failure;
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function update_request_comment.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function update_request_comment.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for updating request status
+	function update_request_status($db,$id,$status,$response)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function update_request_status is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("UPDATE requests SET comment = ? WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(2,$comment,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+				if($debug !== false)
+				{
+					//Execute statement
+					$result=$statement->execute();
+					if($result !== false)
+					{
+						//Close statement
+						$statement->close();
+						unset($statement);
+						return true;
+					}
+					//Failed to execute statement
+					trigger_error("Failed to execute statement in function update_request_status.",E_USER_ERROR);
+					goto failure;
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function update_request_status.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function update_request_status.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for converting request from ID mode to TEXT mode
-	//Function for converting request to CUSTOM mode
+	function convert_id_to_text($db,$id)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function convert_id_to_text is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$req=get_request($id);
+		if($req === false)
+		{
+		}
+		$song=$req->getSong();
+		if($req === false)
+		{
+		}
+		$statement=$db->prepare("UPDATE requests SET mode = 1, songid = NULL, songtext = ? WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(2,$song->getRawDetails(),SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+				if($debug !== false)
+				{
+					//Execute statement
+					$result=$statement->execute();
+					if($result !== false)
+					{
+						//Close statement
+						$statement->close();
+						unset($statement);
+						return true;
+					}
+					//Failed to execute statement
+					trigger_error("Failed to execute statement in function convert_id_to_text.",E_USER_ERROR);
+					goto failure;
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function convert_id_to_text.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function convert_id_to_text.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for deleting a request
+	function delete_request($db,$id)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function delete_request is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("DELETE FROM requests WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return true;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function delete_request.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function delete_request.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function delete_request.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for getting all requests
+	function get_all_requests($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_all_requests is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Initialize set of defaults
+		$requests=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,name,ip,mode,songid,songtext,custom,time,status,comment,response FROM requests");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Set up data format
+					$request=array("id"=>-1,"name"=>"ERROR","ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the MRS to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
+					//Get data from result
+					if(isset($entry["ID"]))
+					{
+						$request["id"]=$entry["ID"];
+					}
+					if(isset($entry["Name"]))
+					{
+						$request["name"]=$entry["Name"];
+					}
+					if(isset($entry["IP"]))
+					{
+						$request["ip"]=$entry["IP"];
+					}
+					if(isset($entry["Mode"]))
+					{
+						$request["mode"]=$entry["Mode"];
+					}
+					if(isset($entry["Time"]))
+					{
+						$request["time"]=$entry["Time"];
+					}
+					if(isset($entry["Status"]))
+					{
+						$request["status"]=$entry["Status"];
+					}
+					if(isset($entry["Comment"]))
+					{
+						$request["comment"]=$entry["Comment"];
+					}
+					if(isset($entry["Response"]))
+					{
+						$request["response"]=$entry["Response"];
+					}
+					switch($request["mode"])
+					{
+						case 0:
+						if(isset($entry["SongID"]))
+						{
+							$request["details"]=$entry["SongID"];
+						}
+						else
+						{
+							trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+							$request["mode"]=2;
+						}
+						break;
+						
+						case 1:
+						if(isset($entry["SongText"]))
+						{
+							$request["details"]=$entry["SongText"];
+						}
+						else
+						{
+							trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+							$request["mode"]=2;
+						}
+						break;
+						
+						case 2:
+						if(isset($entry["Custom"]))
+						{
+							$request["details"]=$entry["Custom"];
+						}
+						else
+						{
+							trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+						}
+						break;
+						
+						default:
+						trigger_error("Invalid request mode. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+						$request["mode"]=2;
+						break;
+					}
+					//Create request object
+					$requestobject=new Request($request["id"],$request["name"],$request["ip"],$request["mode"],$request["details"],$request["time"],$request["status"],$request["comment"],$request["response"]);
+					//Add object to list
+					$requests[]=$requestobject;
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $requests;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function get_all_requests.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_all_requests.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $requests;
+	}
 	//Function for getting a request
+	function get_request($db,$id)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_request is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Set up default
+		$request=false;
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT name,ip,mode,songid,songtext,custom,time,status,comment,response FROM requests WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Loop through all entries
+					while($entry=$result->fetchArray(SQLITE3_ASSOC))
+					{
+						//Set up data format
+						$request=array("id"=>$id,"name"=>"ERROR","ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the MRS to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
+						//Get data from result
+						if(isset($entry["Name"]))
+						{
+							$request["name"]=$entry["Name"];
+						}
+						if(isset($entry["IP"]))
+						{
+							$request["ip"]=$entry["IP"];
+						}
+						if(isset($entry["Mode"]))
+						{
+							$request["mode"]=$entry["Mode"];
+						}
+						if(isset($entry["Time"]))
+						{
+							$request["time"]=$entry["Time"];
+						}
+						if(isset($entry["Status"]))
+						{
+							$request["status"]=$entry["Status"];
+						}
+						if(isset($entry["Comment"]))
+						{
+							$request["comment"]=$entry["Comment"];
+						}
+						if(isset($entry["Response"]))
+						{
+							$request["response"]=$entry["Response"];
+						}
+						switch($request["mode"])
+						{
+							case 0:
+							if(isset($entry["SongID"]))
+							{
+								$request["details"]=$entry["SongID"];
+							}
+							else
+							{
+								trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+								$request["mode"]=2;
+							}
+							break;
+							
+							case 1:
+							if(isset($entry["SongText"]))
+							{
+								$request["details"]=$entry["SongText"];
+							}
+							else
+							{
+								trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+								$request["mode"]=2;
+							}
+							break;
+							
+							case 2:
+							if(isset($entry["Custom"]))
+							{
+								$request["details"]=$entry["Custom"];
+							}
+							else
+							{
+								trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+							}
+							break;
+							
+							default:
+							trigger_error("Invalid request mode. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+							$request["mode"]=2;
+							break;
+						}
+						//Create request object
+						$requestobject=new Request($request["id"],$request["name"],$request["ip"],$request["mode"],$request["details"],$request["time"],$request["status"],$request["comment"],$request["response"]);
+						//Add object to list
+						$request=$requestobject;
+					}
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return $request;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function get_request.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_request.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_request.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $request;
+	}
 	//Function for getting all requests from a user
+	function get_requests_by_user($db,$username)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_requests_by_user is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Set up default
+		$requests=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,ip,mode,songid,songtext,custom,time,status,comment,response FROM requests WHERE name = ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,$username,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Loop through all entries
+					while($entry=$result->fetchArray(SQLITE3_ASSOC))
+					{
+						//Set up data format
+						$request=array("id"=>-1,"name"=>$username,"ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the MRS to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
+						//Get data from result
+						if(isset($entry["ID"]))
+						{
+							$request["id"]=$entry["ID"];
+						}
+						if(isset($entry["IP"]))
+						{
+							$request["ip"]=$entry["IP"];
+						}
+						if(isset($entry["Mode"]))
+						{
+							$request["mode"]=$entry["Mode"];
+						}
+						if(isset($entry["Time"]))
+						{
+							$request["time"]=$entry["Time"];
+						}
+						if(isset($entry["Status"]))
+						{
+							$request["status"]=$entry["Status"];
+						}
+						if(isset($entry["Comment"]))
+						{
+							$request["comment"]=$entry["Comment"];
+						}
+						if(isset($entry["Response"]))
+						{
+							$request["response"]=$entry["Response"];
+						}
+						switch($request["mode"])
+						{
+							case 0:
+							if(isset($entry["SongID"]))
+							{
+								$request["details"]=$entry["SongID"];
+							}
+							else
+							{
+								trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+								$request["mode"]=2;
+							}
+							break;
+							
+							case 1:
+							if(isset($entry["SongText"]))
+							{
+								$request["details"]=$entry["SongText"];
+							}
+							else
+							{
+								trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+								$request["mode"]=2;
+							}
+							break;
+							
+							case 2:
+							if(isset($entry["Custom"]))
+							{
+								$request["details"]=$entry["Custom"];
+							}
+							else
+							{
+								trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+							}
+							break;
+							
+							default:
+							trigger_error("Invalid request mode. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+							$request["mode"]=2;
+							break;
+						}
+						//Create request object
+						$requestobject=new Request($request["id"],$request["name"],$request["ip"],$request["mode"],$request["details"],$request["time"],$request["status"],$request["comment"],$request["response"]);
+						//Add object to list
+						$requests[]=$requestobject;
+					}
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return $requests;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function get_requests_by_user.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_requests_by_user.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_requests_by_user.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $requests;
+	}
 	//Function for getting all requests from an IP
+	function get_requests_by_ip($db,$ip)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_requests_by_ip is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Set up default
+		$requests=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,name,mode,songid,songtext,custom,time,status,comment,response FROM requests WHERE ip = ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,$ip,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Loop through all entries
+					while($entry=$result->fetchArray(SQLITE3_ASSOC))
+					{
+						//Set up data format
+						$request=array("id"=>-1,"name"=>"ERROR","ip"=>$ip,"mode"=>2,"details"=>"Failed to obtain request. Treat the MRS to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
+						//Get data from result
+						if(isset($entry["ID"]))
+						{
+							$request["id"]=$entry["ID"];
+						}
+						if(isset($entry["Name"]))
+						{
+							$request["name"]=$entry["Name"];
+						}
+						if(isset($entry["Mode"]))
+						{
+							$request["mode"]=$entry["Mode"];
+						}
+						if(isset($entry["Time"]))
+						{
+							$request["time"]=$entry["Time"];
+						}
+						if(isset($entry["Status"]))
+						{
+							$request["status"]=$entry["Status"];
+						}
+						if(isset($entry["Comment"]))
+						{
+							$request["comment"]=$entry["Comment"];
+						}
+						if(isset($entry["Response"]))
+						{
+							$request["response"]=$entry["Response"];
+						}
+						switch($request["mode"])
+						{
+							case 0:
+							if(isset($entry["SongID"]))
+							{
+								$request["details"]=$entry["SongID"];
+							}
+							else
+							{
+								trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+								$request["mode"]=2;
+							}
+							break;
+							
+							case 1:
+							if(isset($entry["SongText"]))
+							{
+								$request["details"]=$entry["SongText"];
+							}
+							else
+							{
+								trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+								$request["mode"]=2;
+							}
+							break;
+							
+							case 2:
+							if(isset($entry["Custom"]))
+							{
+								$request["details"]=$entry["Custom"];
+							}
+							else
+							{
+								trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+							}
+							break;
+							
+							default:
+							trigger_error("Invalid request mode. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+							$request["mode"]=2;
+							break;
+						}
+						//Create request object
+						$requestobject=new Request($request["id"],$request["name"],$request["ip"],$request["mode"],$request["details"],$request["time"],$request["status"],$request["comment"],$request["response"]);
+						//Add object to list
+						$requests[]=$requestobject;
+					}
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return $requests;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function get_requests_by_ip.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_requests_by_ip.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_requests_by_ip.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $requests;
+	}
 	//Function for getting all requests of a specific status
+	function get_requests_by_status($db,$status)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_requests_by_status is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Set up default
+		$requests=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,name,ip,mode,songid,songtext,custom,time,comment,response FROM requests WHERE status = ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,$status,SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Loop through all entries
+					while($entry=$result->fetchArray(SQLITE3_ASSOC))
+					{
+						//Set up data format
+						$request=array("id"=>-1,"name"=>"ERROR","ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the MRS to the Floppy Disk Avalance.","time"=>0,"status"=>$status,"comment"=>NULL,"response"=>NULL);
+						//Get data from result
+						if(isset($entry["ID"]))
+						{
+							$request["id"]=$entry["ID"];
+						}
+						if(isset($entry["Name"]))
+						{
+							$request["name"]=$entry["Name"];
+						}
+						if(isset($entry["IP"]))
+						{
+							$request["ip"]=$entry["IP"];
+						}
+						if(isset($entry["Mode"]))
+						{
+							$request["mode"]=$entry["Mode"];
+						}
+						if(isset($entry["Time"]))
+						{
+							$request["time"]=$entry["Time"];
+						}
+						if(isset($entry["Comment"]))
+						{
+							$request["comment"]=$entry["Comment"];
+						}
+						if(isset($entry["Response"]))
+						{
+							$request["response"]=$entry["Response"];
+						}
+						switch($request["mode"])
+						{
+							case 0:
+							if(isset($entry["SongID"]))
+							{
+								$request["details"]=$entry["SongID"];
+							}
+							else
+							{
+								trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+								$request["mode"]=2;
+							}
+							break;
+							
+							case 1:
+							if(isset($entry["SongText"]))
+							{
+								$request["details"]=$entry["SongText"];
+							}
+							else
+							{
+								trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+								$request["mode"]=2;
+							}
+							break;
+							
+							case 2:
+							if(isset($entry["Custom"]))
+							{
+								$request["details"]=$entry["Custom"];
+							}
+							else
+							{
+								trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+							}
+							break;
+							
+							default:
+							trigger_error("Invalid request mode. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+							$request["mode"]=2;
+							break;
+						}
+						//Create request object
+						$requestobject=new Request($request["id"],$request["name"],$request["ip"],$request["mode"],$request["details"],$request["time"],$request["status"],$request["comment"],$request["response"]);
+						//Add object to list
+						$requests[]=$requestobject;
+					}
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return $requests;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function get_requests_by_status.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_requests_by_status.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_requests_by_status.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $requests;
+	}
 	
 	//Function for getting all deleted requests
+	function get_deleted_requests($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_deleted_requests is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Initialize set of defaults
+		$requests=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,name,ip,mode,songid,songtext,custom,time,status,comment,response FROM oldrequests");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Set up data format
+					$request=array("id"=>-1,"name"=>"ERROR","ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the MRS to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
+					//Get data from result
+					if(isset($entry["ID"]))
+					{
+						$request["id"]=$entry["ID"];
+					}
+					if(isset($entry["Name"]))
+					{
+						$request["name"]=$entry["Name"];
+					}
+					if(isset($entry["IP"]))
+					{
+						$request["ip"]=$entry["IP"];
+					}
+					if(isset($entry["Mode"]))
+					{
+						$request["mode"]=$entry["Mode"];
+					}
+					if(isset($entry["Time"]))
+					{
+						$request["time"]=$entry["Time"];
+					}
+					if(isset($entry["Status"]))
+					{
+						$request["status"]=$entry["Status"];
+					}
+					if(isset($entry["Comment"]))
+					{
+						$request["comment"]=$entry["Comment"];
+					}
+					if(isset($entry["Response"]))
+					{
+						$request["response"]=$entry["Response"];
+					}
+					switch($request["mode"])
+					{
+						case 0:
+						if(isset($entry["SongID"]))
+						{
+							$request["details"]=$entry["SongID"];
+						}
+						else
+						{
+							trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+							$request["mode"]=2;
+						}
+						break;
+						
+						case 1:
+						if(isset($entry["SongText"]))
+						{
+							$request["details"]=$entry["SongText"];
+						}
+						else
+						{
+							trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+							$request["mode"]=2;
+						}
+						break;
+						
+						case 2:
+						if(isset($entry["Custom"]))
+						{
+							$request["details"]=$entry["Custom"];
+						}
+						else
+						{
+							trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+						}
+						break;
+						
+						default:
+						trigger_error("Invalid request mode. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+						$request["mode"]=2;
+						break;
+					}
+					//Create request object
+					$requestobject=new Request($request["id"],$request["name"],$request["ip"],$request["mode"],$request["details"],$request["time"],$request["status"],$request["comment"],$request["response"]);
+					//Add object to list
+					$requests[]=$requestobject;
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $requests;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function get_deleted_requests.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_deleted_requests.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $requests;
+	}
 	//Function for getting a deleted request
+	function get_deleted_request($db,$id)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_deleted_request is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Set up default
+		$request=false;
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT name,ip,mode,songid,songtext,custom,time,status,comment,response FROM oldrequests WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Loop through all entries
+					while($entry=$result->fetchArray(SQLITE3_ASSOC))
+					{
+						//Set up data format
+						$request=array("id"=>$id,"name"=>"ERROR","ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the MRS to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
+						//Get data from result
+						if(isset($entry["Name"]))
+						{
+							$request["name"]=$entry["Name"];
+						}
+						if(isset($entry["IP"]))
+						{
+							$request["ip"]=$entry["IP"];
+						}
+						if(isset($entry["Mode"]))
+						{
+							$request["mode"]=$entry["Mode"];
+						}
+						if(isset($entry["Time"]))
+						{
+							$request["time"]=$entry["Time"];
+						}
+						if(isset($entry["Status"]))
+						{
+							$request["status"]=$entry["Status"];
+						}
+						if(isset($entry["Comment"]))
+						{
+							$request["comment"]=$entry["Comment"];
+						}
+						if(isset($entry["Response"]))
+						{
+							$request["response"]=$entry["Response"];
+						}
+						switch($request["mode"])
+						{
+							case 0:
+							if(isset($entry["SongID"]))
+							{
+								$request["details"]=$entry["SongID"];
+							}
+							else
+							{
+								trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+								$request["mode"]=2;
+							}
+							break;
+							
+							case 1:
+							if(isset($entry["SongText"]))
+							{
+								$request["details"]=$entry["SongText"];
+							}
+							else
+							{
+								trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+								$request["mode"]=2;
+							}
+							break;
+							
+							case 2:
+							if(isset($entry["Custom"]))
+							{
+								$request["details"]=$entry["Custom"];
+							}
+							else
+							{
+								trigger_error("Appropriate song details were blank. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+							}
+							break;
+							
+							default:
+							trigger_error("Invalid request mode. Defaulting output and continuing, expect problems.",E_USER_WARNING);
+							$request["mode"]=2;
+							break;
+						}
+						//Create request object
+						$requestobject=new Request($request["id"],$request["name"],$request["ip"],$request["mode"],$request["details"],$request["time"],$request["status"],$request["comment"],$request["response"]);
+						//Add object to list
+						$request=$requestobject;
+					}
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return $request;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function get_deleted_request.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_deleted_request.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_deleted_request.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $request;
+	}
 	//Function for restoring a deleted request
+	function restore_deleted_request($db,$id)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function restore_deleted_request is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$request=get_deleted_request($db,$id);
+		$songid=NULL;
+		$songtext=NULL;
+		$custom=NULL;
+		switch($request->getMode())
+		{
+			case 0:
+			$songid=$request->getSong();
+			break;
+			
+			case 0:
+			$songtext=$request->getSong();
+			break;
+			
+			case 2:
+			$custom=$request->getSong();
+			break;
+		}
+		if($request !== false)
+		{
+			$statement=$db->prepare("INSERT INTO requests(name,ip,mode,songid,songtext,custom,time,status,comment,response) VALUES (?,?,?,?,?,?,?,?,?,?)");
+			if($statement !== false)
+			{
+				//Bind variables
+				$debug=$statement->bindValue(1,$request->getName(),SQLITE3_TEXT);
+				if($debug !== false)
+				{
+					$debug=$statement->bindValue(2,$request->getIP(),SQLITE3_TEXT);
+					if($debug !== false)
+					{
+						$debug=$statement->bindValue(3,$request->getMode(),SQLITE3_INTEGER);
+						if($debug !== false)
+						{
+							$debug=$statement->bindValue(4,$songid,SQLITE3_INTEGER);
+							if($debug !== false)
+							{
+								$debug=$statement->bindValue(5,$songtext,SQLITE3_TEXT);
+								if($debug !== false)
+								{
+									$debug=$statement->bindValue(6,$custom,SQLITE3_TEXT);
+									if($debug !== false)
+									{
+										$debug=$statement->bindValue(7,$request->getTime(),SQLITE3_INTEGER);
+										if($debug !== false)
+										{
+											$debug=$statement->bindValue(8,$request->getStatus(),SQLITE3_INTEGER);
+											if($debug !== false)
+											{
+												$debug=$statement->bindValue(9,$request->getComment(),SQLITE3_TEXT);
+												if($debug !== false)
+												{
+													$debug=$statement->bindValue(10,$request->getResponse(),SQLITE3_TEXT);
+													if($debug !== false)
+													{
+														//Execute statement
+														$result=$statement->execute();
+														if($result !== false)
+														{
+															//Close statement
+															$statement->close();
+															unset($statement);
+															return true;
+														}
+														//Failed to execute statement
+														trigger_error("Failed to execute statement in function restore_deleted_request.",E_USER_ERROR);
+														goto failure;
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				//Failed to bind variables to statement
+				trigger_error("Failed to bind values to statement in function restore_deleted_request.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to create statement
+			trigger_error("Failed to create statement in function restore_deleted_request.",E_USER_ERROR);
+			failure:
+			//Close statement if necessary
+			if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+			{
+				$statement->close();
+				unset($statement);
+			}
+			//Exit
+			return false;
+		}
+		return false;
+	}
+	//Function for restoring all deleted requests
+	function restore_deleted_requests($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_deleted_request is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$debug=array();
+		$reqs=get_deleted_requests($db);
+		foreach($reqs as $req)
+		{
+			$debug[]=restore_deleted_request($db,$req->getID());
+		}
+		if(!in_array(false,$debug))
+		{
+			return true;
+		}
+		return false;
+	}
 	//Function for permanently deleting a request
+	function permanently_delete_request($db,$id)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function permanently_delete_request is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("DELETE FROM oldrequests WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return true;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function permanently_delete_request.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function permanently_delete_request.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function permanently_delete_request.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
+	//Function for permanently deleting all requests
+	function permanently_delete_requests($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_deleted_request is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$debug=array();
+		$reqs=get_deleted_requests($db);
+		foreach($reqs as $req)
+		{
+			$debug[]=permanently_delete_request($db,$req->getID());
+		}
+		if(!in_array(false,$debug))
+		{
+			return true;
+		}
+		return false;
+	}
 ?>
 <?php
 	//Report functions

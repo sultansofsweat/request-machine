@@ -329,4 +329,54 @@
 			return $this->installed;
 		}
 	}
+	
+	class Report
+	{
+		private $id;
+		private $ip;
+		private $request;
+		private $reason;
+		private $unread;
+		
+		public function __construct($d,$p,$r,$t,$u)
+		{
+			$this->id=$d;
+			$this->ip=$p;
+			$this->request=$r;
+			$this->reason=$t;
+			switch($u)
+			{
+				case 0:
+				$this->unread='U';
+				break;
+				case 1:
+				$this->unread='R';
+				break;
+				default:
+				$this->unread='?';
+				break;
+			}
+		}
+		
+		public function getID()
+		{
+			return $this->id;
+		}
+		public function getIP()
+		{
+			return $this->ip;
+		}
+		public function getRequest()
+		{
+			return $this->request;
+		}
+		public function getReason()
+		{
+			return $this->reason;
+		}
+		public function getUnread()
+		{
+			return $this->unread;
+		}
+	}
 ?>

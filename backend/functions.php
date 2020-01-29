@@ -4640,11 +4640,355 @@
 	//Report functions
 	
 	//Function for inserting a report
+	function insert_report($db,$ip,$request,$reason)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function insert_report is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("INSERT INTO reports(ip,request,reason) VALUES (?,?,?)");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(1,$ip,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(3,$reason,SQLITE3_TEXT);
+				if($debug !== false)
+				{
+					$debug=$statement->bindValue(2,$request,SQLITE3_INTEGER);
+					if($debug !== false)
+					{
+						//Execute statement
+						$result=$statement->execute();
+						if($result !== false)
+						{
+							//Close statement
+							$statement->close();
+							unset($statement);
+							return true;
+						}
+						//Failed to execute statement
+						trigger_error("Failed to execute statement in function insert_report.",E_USER_ERROR);
+						goto failure;
+					}
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function insert_report.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function insert_report.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for marking a report as seen
+	function mark_report_as_viewed($db,$id)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function mark_report_as_viewed is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("UPDATE reports SET unread = 1 WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return true;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function mark_report_as_viewed.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function mark_report_as_viewed.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function mark_report_as_viewed.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for deleting a report
+	function delete_report($db,$id)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function delete_report is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("DELETE FROM reports WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return true;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function delete_report.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function delete_report.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function delete_report.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for getting all reports
+	function get_reports($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_reports is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Initialize set of defaults
+		$reports=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,ip,request,reason,unread FROM reports");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Set up data format
+					$report=array("id"=>-1,"ip"=>"0.0.0.0","request"=>1,"reason"=>"Failed to obtain report. Someone probably tortured the MRS with the latest Prepubescent Carl \"hit\".","unread"=>0);
+					//Get data from result
+					if(isset($entry["ID"]))
+					{
+						$report["id"]=$entry["ID"];
+					}
+					if(isset($entry["IP"]))
+					{
+						$report["ip"]=$entry["IP"];
+					}
+					if(isset($entry["Request"]))
+					{
+						$report["request"]=$entry["Request"];
+					}
+					if(isset($entry["Reason"]))
+					{
+						$report["reason"]=$entry["Reason"];
+					}
+					if(isset($entry["Unread"]))
+					{
+						$report["unread"]=$entry["Unread"];
+					}
+					//Create report object
+					$reportobject=new Report($report["id"],$report["ip"],$report["request"],$report["reason"],$report["unread"]);
+					//Add object to list
+					$reports[]=$reportobject;
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $reports;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function get_reports.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_reports.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $reports;
+	}
 	//Function for getting a report
+	function get_report($db,$id)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_report is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		//Set up default
+		$report=false;
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT ip,request,reason,unread FROM reports WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Loop through all entries
+					while($entry=$result->fetchArray(SQLITE3_ASSOC))
+					{
+						//Set up data format
+						$report=array("id"=>$id,"ip"=>"0.0.0.0","request"=>1,"reason"=>"Failed to obtain report. Someone probably tortured the MRS with the latest Prepubescent Carl \"hit\".","unread"=>0);
+						//Get data from result
+						if(isset($entry["IP"]))
+						{
+							$report["ip"]=$entry["IP"];
+						}
+						if(isset($entry["Request"]))
+						{
+							$report["request"]=$entry["Request"];
+						}
+						if(isset($entry["Reason"]))
+						{
+							$report["reason"]=$entry["Reason"];
+						}
+						if(isset($entry["Unread"]))
+						{
+							$report["unread"]=$entry["Unread"];
+						}
+						//Create report object
+						$reportobject=new Report($report["id"],$report["ip"],$report["request"],$report["reason"],$report["unread"]);
+						//Add object to list
+						$report=$reportobject;
+					}
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return $request;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function get_report.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_report.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_report.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $request;
+	}
 	//Function for getting unread reports
+	function get_unread_reports($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_unread_reports is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Initialize set of defaults
+		$reports=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,ip,request,reason FROM reports WHERE unread = 0");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Set up data format
+					$report=array("id"=>-1,"ip"=>"0.0.0.0","request"=>1,"reason"=>"Failed to obtain report. Someone probably tortured the MRS with the latest Prepubescent Carl \"hit\".","unread"=>0);
+					//Get data from result
+					if(isset($entry["ID"]))
+					{
+						$report["id"]=$entry["ID"];
+					}
+					if(isset($entry["IP"]))
+					{
+						$report["ip"]=$entry["IP"];
+					}
+					if(isset($entry["Request"]))
+					{
+						$report["request"]=$entry["Request"];
+					}
+					if(isset($entry["Reason"]))
+					{
+						$report["reason"]=$entry["Reason"];
+					}
+					//Create report object
+					$reportobject=new Report($report["id"],$report["ip"],$report["request"],$report["reason"],$report["unread"]);
+					//Add object to list
+					$reports[]=$reportobject;
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $reports;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function get_unread_reports.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_unread_reports.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $reports;
+	}
 ?>
 <?php
 	//Banning functions

@@ -379,4 +379,62 @@
 			return $this->unread;
 		}
 	}
+	
+	class Ban
+	{
+		private $id;
+		private $item;
+		private $date;
+		private $until;
+		private $reason;
+		
+		public function __construct($i,$t,$d,$u,$r)
+		{
+			$this->id=$i;
+			$this->item=$t;
+			$this->date=$d;
+			$this->until=$u;
+			$this->reason=$r;
+		}
+		
+		public function getID()
+		{
+			return $this->id;
+		}
+		public function getItem()
+		{
+			return $this->item;
+		}
+		public function getDate()
+		{
+			return $this->date;
+		}
+		public function getUntil()
+		{
+			return $this->until;
+		}
+		public function getReason()
+		{
+			return $this->reason;
+		}
+		
+		public function isActive()
+		{
+			if($this->until == 0)
+			{
+				return true;
+			}
+			else
+			{
+				if($this->until > time())
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+		}
+	}
 ?>

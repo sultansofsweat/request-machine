@@ -4994,23 +4994,952 @@
 	//Banning functions
 	
 	//Function for inserting a username ban
+	function insert_uname_ban($db,$uname,$until,$reason=NULL)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function insert_uname_ban is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("INSERT INTO usernames(username,date,until,reason) VALUES (?,?,?,?)");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(1,$uname,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(4,$reason,SQLITE3_TEXT);
+				if($debug !== false)
+				{
+					$debug=$statement->bindValue(2,$date,SQLITE3_INTEGER);
+					if($debug !== false)
+					{
+						$debug=$statement->bindValue(3,$until,SQLITE3_INTEGER);
+						if($debug !== false)
+						{
+							//Execute statement
+							$result=$statement->execute();
+							if($result !== false)
+							{
+								//Close statement
+								$statement->close();
+								unset($statement);
+								return true;
+							}
+							//Failed to execute statement
+							trigger_error("Failed to execute statement in function insert_uname_ban.",E_USER_ERROR);
+							goto failure;
+						}
+					}
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function insert_uname_ban.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function insert_uname_ban.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for updating a username ban
+	function update_uname_ban($db,$id,$until,$reason)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function update_uname_ban is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("UPDATE usernames SET until = ?, reason = ? WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(3,$id,SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(1,$until,SQLITE3_INTEGER);
+				if($debug !== false)
+				{
+					$debug=$statement->bindValue(2,$reason,SQLITE3_TEXT);
+					if($debug !== false)
+					{
+						//Execute statement
+						$result=$statement->execute();
+						if($result !== false)
+						{
+							//Close statement
+							$statement->close();
+							unset($statement);
+							return true;
+						}
+						//Failed to execute statement
+						trigger_error("Failed to execute statement in function update_uname_ban.",E_USER_ERROR);
+						goto failure;
+					}
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function update_uname_ban.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function update_uname_ban.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for deleting a username ban
+	function lift_uname_ban($db,$id)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function lift_uname_ban is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("DELETE FROM usernames WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return true;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function lift_uname_ban.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function lift_uname_ban.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function lift_uname_ban.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for getting all username bans
+	function get_all_uname_bans($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_all_uname_bans is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Initialize set of defaults
+		$bans=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,username,date,until,reason FROM usernames");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Set up data format
+					$ban=array("id"=>-1,"username"=>"ERROR","date"=>0,"until"=>PHP_INT_MAX,"reason"=>"Failed to obtain ban information. Where are all the geese when you need them?!?");
+					//Get data from result
+					if(isset($entry["ID"]))
+					{
+						$report["id"]=$entry["ID"];
+					}
+					if(isset($entry["Username"]))
+					{
+						$report["username"]=$entry["Username"];
+					}
+					if(isset($entry["Date"]))
+					{
+						$report["date"]=$entry["Date"];
+					}
+					if(isset($entry["Reason"]))
+					{
+						$report["reason"]=$entry["Reason"];
+					}
+					if(isset($entry["Until"]))
+					{
+						$report["until"]=$entry["Until"];
+					}
+					//Create report object
+					$banobject=new Ban($ban["id"],$ban["username"],$report["date"],$report["until"],$report["reason"]);
+					//Add object to list
+					$bans[]=$banobject;
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $bans;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function get_all_uname_bans.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_all_uname_bans.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $bans;
+	}
 	//Function for getting all bans for a username
-	//Function for getting active ban for a username
+	function get_all_bans_for_uname($db,$uname)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_all_bans_for_uname is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Set up default
+		$bans=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,date,reason,until FROM usernames WHERE username = ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,$uname,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Loop through all entries
+					while($entry=$result->fetchArray(SQLITE3_ASSOC))
+					{
+						//Set up data format
+						$ban=array("id"=>-1,"username"=>$uname,"date"=>0,"until"=>PHP_INT_MAX,"reason"=>"Failed to obtain ban information. Where are all the geese when you need them?!?");
+						//Get data from result
+						if(isset($entry["ID"]))
+						{
+							$report["id"]=$entry["ID"];
+						}
+						if(isset($entry["Date"]))
+						{
+							$report["date"]=$entry["Date"];
+						}
+						if(isset($entry["Reason"]))
+						{
+							$report["reason"]=$entry["Reason"];
+						}
+						if(isset($entry["Until"]))
+						{
+							$report["until"]=$entry["Until"];
+						}
+						//Create report object
+						$banobject=new Ban($ban["id"],$ban["username"],$report["date"],$report["until"],$report["reason"]);
+						//Add object to list
+						$bans[]=$banobject;
+					}
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return $bans;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function get_all_bans_for_uname.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_all_bans_for_uname.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_all_bans_for_uname.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $bans;
+	}
 	
 	//Function for inserting an IP ban
+	function insert_ip_ban($db,$ip,$until,$reason=NULL)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function insert_ip_ban is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("INSERT INTO ips(ip,date,until,reason) VALUES (?,?,?,?)");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(1,$ip,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(4,$reason,SQLITE3_TEXT);
+				if($debug !== false)
+				{
+					$debug=$statement->bindValue(2,$date,SQLITE3_INTEGER);
+					if($debug !== false)
+					{
+						$debug=$statement->bindValue(3,$until,SQLITE3_INTEGER);
+						if($debug !== false)
+						{
+							//Execute statement
+							$result=$statement->execute();
+							if($result !== false)
+							{
+								//Close statement
+								$statement->close();
+								unset($statement);
+								return true;
+							}
+							//Failed to execute statement
+							trigger_error("Failed to execute statement in function insert_ip_ban.",E_USER_ERROR);
+							goto failure;
+						}
+					}
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function insert_ip_ban.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function insert_ip_ban.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for updating an IP ban
+	function update_ip_ban($db,$id,$until,$reason)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function update_ip_ban is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("UPDATE ips SET until = ?, reason = ? WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(3,$id,SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(1,$until,SQLITE3_INTEGER);
+				if($debug !== false)
+				{
+					$debug=$statement->bindValue(2,$reason,SQLITE3_TEXT);
+					if($debug !== false)
+					{
+						//Execute statement
+						$result=$statement->execute();
+						if($result !== false)
+						{
+							//Close statement
+							$statement->close();
+							unset($statement);
+							return true;
+						}
+						//Failed to execute statement
+						trigger_error("Failed to execute statement in function update_ip_ban.",E_USER_ERROR);
+						goto failure;
+					}
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function update_ip_ban.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function update_ip_ban.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for deleting an IP ban
+	function lift_ip_ban($db,$id)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function lift_ip_ban is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("DELETE FROM ips WHERE id = ?");
+		if($statement !== false)
+		{
+			//Bind variables
+			$debug=$statement->bindValue(1,$id,SQLITE3_INTEGER);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return true;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function lift_ip_ban.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function lift_ip_ban.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function lift_ip_ban.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for getting all IP bans
+	function get_all_ip_bans($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_all_ip_bans is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Initialize set of defaults
+		$bans=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,ip,date,until,reason FROM ips");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Set up data format
+					$ban=array("id"=>-1,"ip"=>"ERROR","date"=>0,"until"=>PHP_INT_MAX,"reason"=>"Failed to obtain ban information. Where are all the geese when you need them?!?");
+					//Get data from result
+					if(isset($entry["ID"]))
+					{
+						$report["id"]=$entry["ID"];
+					}
+					if(isset($entry["IP"]))
+					{
+						$report["ip"]=$entry["IP"];
+					}
+					if(isset($entry["Date"]))
+					{
+						$report["date"]=$entry["Date"];
+					}
+					if(isset($entry["Reason"]))
+					{
+						$report["reason"]=$entry["Reason"];
+					}
+					if(isset($entry["Until"]))
+					{
+						$report["until"]=$entry["Until"];
+					}
+					//Create report object
+					$banobject=new Ban($ban["id"],$ban["ip"],$report["date"],$report["until"],$report["reason"]);
+					//Add object to list
+					$bans[]=$banobject;
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $bans;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function get_all_ip_bans.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_all_ip_bans.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $bans;
+	}
 	//Function for getting all bans for an IP
-	//Function for getting active ban for an IP
+	function get_all_bans_for_ip($db,$ip)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_all_bans_for_ip is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Set up default
+		$bans=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,date,reason,until FROM ips WHERE ip = ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,$ip,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Loop through all entries
+					while($entry=$result->fetchArray(SQLITE3_ASSOC))
+					{
+						//Set up data format
+						$ban=array("id"=>-1,"ip"=>$ip,"date"=>0,"until"=>PHP_INT_MAX,"reason"=>"Failed to obtain ban information. Where are all the geese when you need them?!?");
+						//Get data from result
+						if(isset($entry["ID"]))
+						{
+							$report["id"]=$entry["ID"];
+						}
+						if(isset($entry["Date"]))
+						{
+							$report["date"]=$entry["Date"];
+						}
+						if(isset($entry["Reason"]))
+						{
+							$report["reason"]=$entry["Reason"];
+						}
+						if(isset($entry["Until"]))
+						{
+							$report["until"]=$entry["Until"];
+						}
+						//Create report object
+						$banobject=new Ban($ban["id"],$ban["ip"],$report["date"],$report["until"],$report["reason"]);
+						//Add object to list
+						$bans[]=$banobject;
+					}
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return $bans;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function get_all_bans_for_ip.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_all_bans_for_ip.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_all_bans_for_ip.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $bans;
+	}
 	
-	//Function for getting a user-IP mapping
+	//Function for getting all user-IP mappings
+	function get_all_maps($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_all_maps is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Initialize set of defaults
+		$mappings=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT username,ip,count FROM mappings");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Set up data format
+					$mapping=array("username"=>"ERROR","ip"=>"0.0.0.0","count"=>0);
+					//Get data from result
+					if(isset($entry["Username"]))
+					{
+						$report["username"]=$entry["Username"];
+					}
+					if(isset($entry["IP"]))
+					{
+						$report["ip"]=$entry["IP"];
+					}
+					if(isset($entry["Count"]))
+					{
+						$report["count"]=$entry["Count"];
+					}
+					//Add to list
+					$mappings[]=$mapping;
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $mappings;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function get_all_maps.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_all_maps.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $mappings;
+	}
+	//Function for checking if a mapping exists
+	function does_map_exist($db,$username,$ip)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function does_map_exist is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Set up default
+		$bans=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT count FROM mappings WHERE username = ? AND ip = ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,$username,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				$debug=$statement->bindValue(2,$ip,SQLITE3_TEXT);
+				if($debug !== false)
+				{
+					//Execute statement
+					$result=$statement->execute();
+					if($result !== false)
+					{
+						//Loop through all entries
+						while($entry=$result->fetchArray(SQLITE3_ASSOC))
+						{
+							//Close statement
+							$statement->close();
+							unset($statement);
+							return true;
+						}
+						//Close statement
+						$statement->close();
+						unset($statement);
+						return false;
+					}
+					//Failed to execute statement
+					trigger_error("Failed to execute statement in function does_map_exist.",E_USER_ERROR);
+					goto failure;
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function does_map_exist.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function does_map_exist.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for inserting a new/updating an existing user-IP mapping
+	function upsert_map($db,$username,$ip)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function upsert_map is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		if(does_map_exist($db,$username,$ip) === true)
+		{
+			$statement=$db->prepare("INSERT INTO mappings(ip,username) VALUES (?,?)");
+			if($statement !== false)
+			{
+				//Bind variables
+				$debug=$statement->bindValue(1,$ip,SQLITE3_TEXT);
+				if($debug !== false)
+				{
+					$debug=$statement->bindValue(2,$username,SQLITE3_TEXT);
+					if($debug !== false)
+					{
+						//Execute statement
+						$result=$statement->execute();
+						if($result !== false)
+						{
+							//Close statement
+							$statement->close();
+							unset($statement);
+							return true;
+						}
+						//Failed to execute statement
+						trigger_error("Failed to execute statement in function upsert_map.",E_USER_ERROR);
+						goto failure;
+					}
+				}
+				//Failed to bind variables to statement
+				trigger_error("Failed to bind values to statement in function upsert_map.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to create statement
+			trigger_error("Failed to create statement in function upsert_map.",E_USER_ERROR);
+			goto failure;
+		}
+		else
+		{
+			$statement=$db->prepare("UPDATE mappings SET count = count + 1 WHERE ip = ? AND username = ?");
+			if($statement !== false)
+			{
+				//Bind variables
+				$debug=$statement->bindValue(1,$ip,SQLITE3_TEXT);
+				if($debug !== false)
+				{
+					$debug=$statement->bindValue(2,$username,SQLITE3_TEXT);
+					if($debug !== false)
+					{
+						//Execute statement
+						$result=$statement->execute();
+						if($result !== false)
+						{
+							//Close statement
+							$statement->close();
+							unset($statement);
+							return true;
+						}
+						//Failed to execute statement
+						trigger_error("Failed to execute statement in function upsert_map.",E_USER_ERROR);
+						goto failure;
+					}
+				}
+				//Failed to bind variables to statement
+				trigger_error("Failed to bind values to statement in function upsert_map.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to create statement
+			trigger_error("Failed to create statement in function upsert_map.",E_USER_ERROR);
+			goto failure;
+		}		
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
+	//Function for clearing all user-IP mappings
+	function clear_maps($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function clear_maps is not a valid database.",E_USER_ERROR);
+			return false;
+		}
+		$statement=$db->prepare("DELETE FROM mappings");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return true;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function clear_maps.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function clear_maps.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return false;
+	}
 	//Function for getting all IPs associated with a username
+	function get_ip_maps($db,$ip)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_ip_maps is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Set up default
+		$usernames=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT username FROM mappings WHERE ip = ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,$ip,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Loop through all entries
+					while($entry=$result->fetchArray(SQLITE3_ASSOC))
+					{
+						//Add item to list if it exists
+						if(!empty($entry['Username']))
+						{
+							$usernames[]=$entry['Username'];
+						}
+					}
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return $usernames;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function get_ip_maps.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_ip_maps.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_ip_maps.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $usernames;
+	}
 	//Function for getting all usernames associated with an IP
+	function get_username_maps($db,$uname)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_username_maps is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Set up default
+		$ips=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT ip FROM mappings WHERE username = ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,$uname,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				//Execute statement
+				$result=$statement->execute();
+				if($result !== false)
+				{
+					//Loop through all entries
+					while($entry=$result->fetchArray(SQLITE3_ASSOC))
+					{
+						//Add item to list if it exists
+						if(!empty($entry['IP']))
+						{
+							$ips[]=$entry['IP'];
+						}
+					}
+					//Close statement
+					$statement->close();
+					unset($statement);
+					return $ips;
+				}
+				//Failed to execute statement
+				trigger_error("Failed to execute statement in function get_username_maps.",E_USER_ERROR);
+				goto failure;
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_username_maps.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_username_maps.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $ips;
+	}
 ?>
 <?php
 	//Updating functions

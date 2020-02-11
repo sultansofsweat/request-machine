@@ -437,4 +437,31 @@
 			}
 		}
 	}
+	
+	class UpgradeReturn
+	{
+		private $code;
+		private $success;
+		private $fail;
+		
+		public function __construct($c,$s=0,$f=0)
+		{
+			$this->code=$c;
+			$this->success=$s;
+			$this->fail=$f;
+		}
+		
+		public function getCode()
+		{
+			return $this->code;
+		}
+		public function getSuccess()
+		{
+			return $this->success;
+		}
+		public function getFail()
+		{
+			return $this->fail;
+		}
+	}
 ?>

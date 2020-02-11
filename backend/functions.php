@@ -5945,13 +5945,816 @@
 	//Updating functions
 	
 	//Function for getting list of upgrade packages
+	function get_build_list($mirror)
+	{
+		$curl=@curl_init();
+		if($curl !== false)
+		{
+			@curl_setopt($curl, CURLOPT_URL, "$mirror/getbuilds.php");
+			@curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+			@curl_setopt($curl, CURLOPT_HEADER, false);
+			$data=@curl_exec($curl);
+			if(!empty($data) && !curl_errno($curl) && curl_getinfo($curl,CURLINFO_HTTP_CODE) == 200)
+			{
+				$data=explode("\r\n",$data);
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Retrieved build codes from mirror.");
+				@curl_close($curl);
+				return new UpgradeReturn(0,count($data),$data);
+			}
+			else
+			{
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to get build codes from mirror: error code " . curl_errno($curl) . ", HTTP response code " . curl_getinfo($curl,CURLINFO_HTTP_CODE) . ".");
+				$return=new UpgradeReturn(2,curl_errno($curl),curl_getinfo($curl,CURLINFO_HTTP_CODE));
+				@curl_close($curl);
+				return $return;
+			}
+		}
+		else
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to get build codes from mirror: error code " . curl_errno($curl) . ", HTTP response code " . curl_getinfo($curl,CURLINFO_HTTP_CODE) . ".");
+			$return=new UpgradeReturn(1);
+			@curl_close($curl);
+			return $return;
+		}
+	}
 	//Function for getting upgrade package
+	function get_upgrade_pack($mirror,$buildcode)
+	{
+		insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Beginning download of upgrade package \"$buildcode\".");
+		if(!file_exists("package.zip"))
+		{
+			$dfh=@fopen("package.zip",'w+');
+			if($dfh)
+			{
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Opened destination file \"package.zip\" for writing.");
+				$curl=@curl_init();
+				if($curl !== false)
+				{
+					@curl_setopt($curl, CURLOPT_URL, "$mirror/$buildcode.zip");
+					@curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+					@curl_setopt($curl, CURLOPT_BINARYTRANSFER, true);
+					@curl_setopt($curl, CURLOPT_FILE,$dfh);
+					@curl_setopt($curl, CURLOPT_HEADER, false);
+					@curl_exec($curl);
+					if(!curl_errno($curl) && curl_getinfo($curl,CURLINFO_HTTP_CODE) == 200)
+					{
+						insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Downloaded upgrade package from mirror");
+					}
+					else
+					{
+						@fclose($dfh);
+						@unlink("package.zip");
+						insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to download upgrade package from mirror: error code " . curl_errno($curl) . ", HTTP response code " . curl_getinfo($curl,CURLINFO_HTTP_CODE) . ".");
+						$return=new UpgradeReturn(5,curl_errno($curl),curl_getinfo($curl,CURLINFO_HTTP_CODE));
+						@curl_close($curl);
+						return $return;
+					}
+					@curl_close($curl);
+					@fclose($dfh);
+				}
+				else
+				{
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to initialize cURL.");
+					return new UpgradeReturn(4);
+				}
+			}
+			else
+			{
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to open destination file \"package.zip\" for writing.");
+				return new UpgradeReturn(3);
+			}
+		}
+		insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Finished download of upgrade package \"$buildcode\".");
+		insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Begin verifying checksum of upgrade package \"$buildcode\".");
+		$curl=@curl_init();
+		if($curl !== false)
+		{
+			@curl_setopt($curl, CURLOPT_URL, "$mirror/gethash.php?build=$buildcode");
+			@curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+			@curl_setopt($curl, CURLOPT_HEADER, false);
+			$data=@curl_exec($curl);
+			
+			if(!empty($data) && !curl_errno($curl) && curl_getinfo($curl,CURLINFO_HTTP_CODE) == 200)
+			{
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Retrieved checksum from mirror: \"$data\".");
+				$localhash=md5_file("package.zip");
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Retrieved checksum from local file: \"$localhash\".");
+				if($localhash == $data)
+				{
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Hashes match, download process complete.");
+					@curl_close($curl);
+					return new UpgradeReturn(0);
+				}
+				else
+				{
+					@unlink("package.zip");
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Hashes do not match, halting process.");
+					$return=new UpgradeReturn(8,$data,$localhash);
+					@curl_close($curl);
+					return $return;
+				}
+			}
+			else
+			{
+				@unlink("package.zip");
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to get checksum from mirror: error code " . curl_errno($curl) . ", HTTP response code " . curl_getinfo($curl,CURLINFO_HTTP_CODE) . ".");
+				$return=new UpgradeReturn(7,curl_errno($curl),curl_getinfo($curl,CURLINFO_HTTP_CODE));
+				@curl_close($curl);
+				return $return;
+			}
+		}
+		else
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to initialize cURL object.");
+			@unlink("package.zip");
+			return new UpgradeReturn(6);
+		}
+	}
 	//Function for unpacking upgrade package
+	function unpack_package()
+	{
+		if(!file_exists("package.zip"))
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Upgrade package doesn't exist, terminating process.");
+			return new UpgradeReturn(9,"PACKAGE_NOT_EXISTING");
+		}
+		if(!file_exists("files") || !is_dir("files"))
+		{
+			$debug=@mkdir("files");
+			if($debug !== true)
+			{
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Cannot create temporary directory, terminating process.");
+				return new UpgradeReturn(9,"CANNOT_MAKE_DIRECTORY");
+			}
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Created temporary directory.");
+		}
+		$arch=new ZipArchive;
+		if($arch->open("latest.zip"))
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Opened upgrade package.");
+			$debug=$arch->extractTo("files");
+			if($debug === true)
+			{
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Extracted upgrade package to \"files\".");
+				$arch->close();
+				return new UpgradeReturn(0);
+			}
+			else
+			{
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to extract upgrade package, terminating process.");
+				$arch->close();
+				@rmdir("files");
+				return new UpgradeReturn(9,"CANNOT_UNZIP_FILES");
+			}
+		}
+		else
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to open upgrade package, terminating process.");
+			@rmdir("files");
+			return new UpgradeReturn(9,"CANNOT_OPEN_ARCHIVE");
+		}
+	}
+	//Function for backing up the MRS' existing files
+	function back_up_mrs()
+	{
+		$debug=@mkdir("backup-frontend");
+		if($debug !== true)
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to create backup directory for MRS frontend, terminating process.");
+			return new UpgradeReturn(10);
+		}
+		insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Created backup directory for MRS frontend.");
+		$debug=@mkdir("backup-backend");
+		if($debug !== true)
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to create backup directory for MRS backend, terminating process.");
+			return new UpgradeReturn(11);
+		}
+		insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Created backup directory for MRS backend.");
+		$debug=@mkdir("backup-db");
+		if($debug !== true)
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to create backup directory for MRS databases, terminating process.");
+			return new UpgradeReturn(12);
+		}
+		insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Created backup directory for MRS databases.");
+		$debug=@mkdir("backup-upgrade");
+		if($debug !== true)
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to create backup directory for MRS upgrade scripts, terminating process.");
+			return new UpgradeReturn(13);
+		}
+		insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Created backup directory for MRS upgrade scripts.");
+		$returns=array(0,0);
+		$debug=@chdir("..");
+		if($debug === true)
+		{
+			$files=@glob("*.php");
+			foreach($files as $file)
+			{
+				$debug=@copy($file,"upgrade/backup-frontend");
+				if($debug !== true)
+				{
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to backup file \"$file\".");
+					$returns[1]++;
+				}
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Backed up file \"$file\".");
+				$returns[0]++;
+			}
+		}
+		else
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to change to root directory, proceeding without backup.");
+		}
+		$debug=@chdir("backend");
+		if($debug === true)
+		{
+			$files=@glob("*.php");
+			foreach($files as $file)
+			{
+				$debug=@copy($file,"../upgrade/backup-backend");
+				if($debug !== true)
+				{
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to backup file \"$file\".");
+					$returns[1]++;
+				}
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Backed up file \"$file\".");
+				$returns[0]++;
+			}
+		}
+		else
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to change to backend directory, proceeding without backup.");
+		}
+		$debug=@chdir("../db");
+		if($debug === true)
+		{
+			$files=@glob("*.sqlite");
+			foreach($files as $file)
+			{
+				$debug=@copy($file,"../upgrade/backup-db");
+				if($debug !== true)
+				{
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to backup file \"$file\".");
+					$returns[1]++;
+				}
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Backed up file \"$file\".");
+				$returns[0]++;
+			}
+		}
+		else
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to change to database directory, proceeding without backup.");
+		}
+		$debug=@chdir("../upgrade");
+		if($debug === true)
+		{
+			$files=@glob("*.php");
+			foreach($files as $file)
+			{
+				$debug=@copy($file,"backup-upgrade");
+				if($debug !== true)
+				{
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to backup file \"$file\".");
+					$returns[1]++;
+				}
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Backed up file \"$file\".");
+				$returns[0]++;
+			}
+		}
+		else
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to change to upgrade directory, proceeding without backup.");
+		}
+		return new UpgradeReturn(0,$returns[0],$returns[1]);
+	}
 	//Function for running pre-processor
+	function run_pre_processor()
+	{
+		if(strpos(getcwd(),"files") === false)
+		{
+			$debug=@chdir("files");
+		}
+		else
+		{
+			$debug=true;
+		}
+		if($debug === true)
+		{
+			if(file_exists("preprocessor.php"))
+			{
+				require("preprocessor.php");
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Running pre-processor.");
+				$debug=preprocessor_run();
+				return new UpgradeReturn($debug);
+			}
+			else
+			{
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","No preprocessor script found, proceeding without running.");
+				return new UpgradeReturn(0);
+			}
+		}
+		else
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to change to temporary directory, terminating process.");
+			return new UpgradeReturn(20);
+		}
+	}
 	//Function for replacing system files
+	function replace_files()
+	{
+		if(strpos(getcwd(),"files") === false)
+		{
+			$debug=@chdir("files");
+		}
+		else
+		{
+			$debug=true;
+		}
+		if($debug === true)
+		{
+			if(file_exists("sysfiles.txt"))
+			{
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Processing list of system files.");
+				$files=array();
+				$raw=explode("\r\n",file_get_contents("sysfiles.txt"));
+				foreach($raw as $file)
+				{
+					$file=explode("|",$file);
+					if(!empty($file[0]) && !empty($file[1]) && file_exists($file[0]))
+					{
+						$files[$file[0]]=$file[1];
+					}
+					else
+					{
+						insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to process directive \"" . implode("|",$file) . "\", ignoring it, expect problems.");
+					}
+				}
+				$returns=array(0,0);
+				foreach($files as $temp=>$new)
+				{
+					$debug=@rename($temp,$new);
+					if($debug === true)
+					{
+						insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Renamed file \"$temp\" to \"$new\".");
+						$returns[0]++;
+					}
+					else
+					{
+						insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to rename file \"$temp\" to \"$new\", proceeding anyways, expect problems.");
+						$returns[1]++;
+					}
+				}
+				return new UpgradeReturn(0,$returns[0],$returns[1]);
+			}
+			else
+			{
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","No system file list found, proceeding without replacing anything.");
+				return new UpgradeReturn(0);
+			}
+		}
+		else
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to change to temporary directory, terminating process.");
+			return new UpgradeReturn(30);
+		}
+	}
 	//Function for upgrading databases
+	function upgrade_dbs()
+	{
+		if(strpos(getcwd(),"files") === false)
+		{
+			$debug=@chdir("files");
+		}
+		else
+		{
+			$debug=true;
+		}
+		if($debug === true)
+		{
+			if(file_exists("dbupgrade.php"))
+			{
+				require("dbupgrade.php");
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Running database upgrade script.");
+				$debug=upgrade_databases();
+				return new UpgradeReturn($debug);
+			}
+			else
+			{
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","No database upgrade script found, proceeding without running.");
+				return new UpgradeReturn(0);
+			}
+		}
+		else
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to change to temporary directory, terminating process.");
+			return new UpgradeReturn(40);
+		}
+	}
 	//Function for running post-processor
+	function run_post_processor()
+	{
+		if(strpos(getcwd(),"files") === false)
+		{
+			$debug=@chdir("files");
+		}
+		else
+		{
+			$debug=true;
+		}
+		if($debug === true)
+		{
+			if(file_exists("postprocessor.php"))
+			{
+				require("postprocessor.php");
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Running post-processor.");
+				$debug=postprocessor_run();
+				return new UpgradeReturn($debug);
+			}
+			else
+			{
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","No postprocessor script found, proceeding without running.");
+				return new UpgradeReturn(0);
+			}
+		}
+		else
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to change to temporary directory, terminating process.");
+			return new UpgradeReturn(50);
+		}
+	}
 	//Function to clean up remaining mess
+	function clean_up_upgrade($keepback=true)
+	{
+		$returncode=0;
+		$returns=array(0,0);
+		if(strpos(getcwd(),"files") === false)
+		{
+			$debug=@chdir("files");
+		}
+		else
+		{
+			$debug=true;
+		}
+		if($debug === true)
+		{
+			$removable=true;
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Beginning cleanup process.");
+			$files=array_merge(glob("*.php"),glob("*.txt"));
+			foreach($files as $file)
+			{
+				$debug=@unlink($file);
+				if($debug === true)
+				{
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Removed file \"$file\".");
+					$returns[0]++;
+				}
+				else
+				{
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove file \"$file\".");
+					$returns[1]++;
+					$removable=false;
+				}
+			}
+			if($removable === true)
+			{
+				$debug=@chdir("..");
+				if($debug === true)
+				{
+					$debug=@rmdir("files");
+					if($debug === true)
+					{
+						insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Removed directory \"files\".");
+					}
+					else
+					{
+						insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove directory \"files\".");
+						$returncode=68;
+					}
+				}
+				else
+				{
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove directory \"files\".");
+					$returncode=68;
+				}
+			}
+			else
+			{
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove directory \"files\", as it isn't empty due to previous failures.");
+				$returncode=61;
+			}
+			if($keepback === false)
+			{
+				$debug=@chdir("backup-frontend");
+				if($debug === true)
+				{
+					$removable=true;
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Cleaning up directory \"backup-frontend\".");
+					$files=glob("*.php");
+					foreach($files as $file)
+					{
+						$debug=@unlink($file);
+						if($debug === true)
+						{
+							insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Removed file \"$file\".");
+							$returns[0]++;
+						}
+						else
+						{
+							insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove file \"$file\".");
+							$returns[1]++;
+							$removable=false;
+						}
+					}
+					if($removable === true)
+					{
+						$debug=@chdir("..");
+						if($debug === true)
+						{
+							$debug=@rmdir("backup-frontend");
+							if($debug === true)
+							{
+								insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Removed directory \"backup-frontend\".");
+							}
+							else
+							{
+								insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove directory \"backup-frontend\".");
+								if($returncode != 0)
+								{
+									$returncode=66;
+								}
+								else
+								{
+									$returncode=62;
+								}
+							}
+						}
+						else
+						{
+							insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove directory \"backup-frontend\".");
+							if($returncode != 0)
+							{
+								$returncode=66;
+							}
+							else
+							{
+								$returncode=62;
+							}
+						}
+					}
+					else
+					{
+						insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove directory \"backup-frontend\", as it isn't empty due to previous failures.");
+						if($returncode != 0)
+						{
+							$returncode=66;
+						}
+						else
+						{
+							$returncode=62;
+						}
+					}
+				}
+				else
+				{
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to change to directory \"backup-frontend\", cancelling removal and proceeding with next step.");
+					$returncode=69;
+				}
+				$debug=@chdir("backup-backend");
+				if($debug === true)
+				{
+					$removable=true;
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Cleaning up directory \"backup-backend\".");
+					$files=glob("*.php");
+					foreach($files as $file)
+					{
+						$debug=@unlink($file);
+						if($debug === true)
+						{
+							insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Removed file \"$file\".");
+							$returns[0]++;
+						}
+						else
+						{
+							insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove file \"$file\".");
+							$returns[1]++;
+							$removable=false;
+						}
+					}
+					if($removable === true)
+					{
+						$debug=@chdir("..");
+						if($debug === true)
+						{
+							$debug=@rmdir("backup-backend");
+							if($debug === true)
+							{
+								insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Removed directory \"backup-backend\".");
+							}
+							else
+							{
+								insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove directory \"backup-backend\".");
+								if($returncode != 0)
+								{
+									$returncode=66;
+								}
+								else
+								{
+									$returncode=63;
+								}
+							}
+						}
+						else
+						{
+							insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove directory \"backup-backend\".");
+							if($returncode != 0)
+							{
+								$returncode=66;
+							}
+							else
+							{
+								$returncode=63;
+							}
+						}
+					}
+					else
+					{
+						insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove directory \"backup-backend\", as it isn't empty due to previous failures.");
+						if($returncode != 0)
+						{
+							$returncode=66;
+						}
+						else
+						{
+							$returncode=63;
+						}
+					}
+				}
+				else
+				{
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to change to directory \"backup-backend\", cancelling removal and proceeding with next step.");
+					$returncode=69;
+				}
+				$debug=@chdir("backup-upgrade");
+				if($debug === true)
+				{
+					$removable=true;
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Cleaning up directory \"backup-upgrade\".");
+					$files=glob("*.php");
+					foreach($files as $file)
+					{
+						$debug=@unlink($file);
+						if($debug === true)
+						{
+							insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Removed file \"$file\".");
+							$returns[0]++;
+						}
+						else
+						{
+							insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove file \"$file\".");
+							$returns[1]++;
+							$removable=false;
+						}
+					}
+					if($removable === true)
+					{
+						$debug=@chdir("..");
+						if($debug === true)
+						{
+							$debug=@rmdir("backup-upgrade");
+							if($debug === true)
+							{
+								insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Removed directory \"backup-upgrade\".");
+							}
+							else
+							{
+								insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove directory \"backup-upgrade\".");
+								if($returncode != 0)
+								{
+									$returncode=66;
+								}
+								else
+								{
+									$returncode=64;
+								}
+							}
+						}
+						else
+						{
+							insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove directory \"backup-upgrade\".");
+							if($returncode != 0)
+							{
+								$returncode=66;
+							}
+							else
+							{
+								$returncode=64;
+							}
+						}
+					}
+					else
+					{
+						insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove directory \"backup-upgrade\", as it isn't empty due to previous failures.");
+						if($returncode != 0)
+						{
+							$returncode=66;
+						}
+						else
+						{
+							$returncode=64;
+						}
+					}
+				}
+				else
+				{
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to change to directory \"backup-upgrade\", cancelling removal and proceeding with next step.");
+					$returncode=69;
+				}
+				$debug=@chdir("backup-db");
+				if($debug === true)
+				{
+					$removable=true;
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Cleaning up directory \"backup-db\".");
+					$files=glob("*.sqlite");
+					foreach($files as $file)
+					{
+						$debug=@unlink($file);
+						if($debug === true)
+						{
+							insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Removed file \"$file\".");
+							$returns[0]++;
+						}
+						else
+						{
+							insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove file \"$file\".");
+							$returns[1]++;
+							$removable=false;
+						}
+					}
+					if($removable === true)
+					{
+						$debug=@chdir("..");
+						if($debug === true)
+						{
+							$debug=@rmdir("backup-db");
+							if($debug === true)
+							{
+								insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Removed directory \"backup-db\".");
+							}
+							else
+							{
+								insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove directory \"backup-db\".");
+								if($returncode != 0)
+								{
+									$returncode=66;
+								}
+								else
+								{
+									$returncode=65;
+								}
+							}
+						}
+						else
+						{
+							insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove directory \"backup-db\".");
+							if($returncode != 0)
+							{
+								$returncode=66;
+							}
+							else
+							{
+								$returncode=65;
+							}
+						}
+					}
+					else
+					{
+						insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to remove directory \"backup-db\", as it isn't empty due to previous failures.");
+						if($returncode != 0)
+						{
+							$returncode=66;
+						}
+						else
+						{
+							$returncode=65;
+						}
+					}
+				}
+				else
+				{
+					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to change to directory \"backup-frontend\", cancelling removal and proceeding with next step.");
+					$returncode=69;
+				}
+			}
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Cleanup process ended.");
+		}
+		else
+		{
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to change to temporary directory, terminating process.");
+			$returncode=60;
+		}
+		return new UpgradeReturn($returncode);
+	}
 ?>
 <?php
 	//Security functions

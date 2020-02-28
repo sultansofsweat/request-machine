@@ -6078,9 +6078,9 @@
 			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Upgrade package doesn't exist, terminating process.");
 			return new UpgradeReturn(9,"PACKAGE_NOT_EXISTING");
 		}
-		if(!file_exists("files") || !is_dir("files"))
+		if(!file_exists("upgrade") || !is_dir("upgrade"))
 		{
-			$debug=@mkdir("files");
+			$debug=@mkdir("upgrade");
 			if($debug !== true)
 			{
 				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Cannot create temporary directory, terminating process.");
@@ -6092,10 +6092,10 @@
 		if($arch->open("latest.zip"))
 		{
 			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Opened upgrade package.");
-			$debug=$arch->extractTo("files");
+			$debug=$arch->extractTo("upgrade");
 			if($debug === true)
 			{
-				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Extracted upgrade package to \"files\".");
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Extracted upgrade package to \"upgrade\".");
 				$arch->close();
 				return new UpgradeReturn(0);
 			}
@@ -6138,33 +6138,18 @@
 			return new UpgradeReturn(12);
 		}
 		insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Created backup directory for MRS databases.");
-		$debug=@mkdir("backup-upgrade");
-		if($debug !== true)
-		{
-			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to create backup directory for MRS upgrade scripts, terminating process.");
-			return new UpgradeReturn(13);
-		}
-		insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Created backup directory for MRS upgrade scripts.");
 		$returns=array(0,0);
-		$debug=@chdir("..");
-		if($debug === true)
+		$files=@glob("*.php");
+		foreach($files as $file)
 		{
-			$files=@glob("*.php");
-			foreach($files as $file)
+			$debug=@copy($file,"backup-frontend");
+			if($debug !== true)
 			{
-				$debug=@copy($file,"upgrade/backup-frontend");
-				if($debug !== true)
-				{
-					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to backup file \"$file\".");
-					$returns[1]++;
-				}
-				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Backed up file \"$file\".");
-				$returns[0]++;
+				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to backup file \"$file\".");
+				$returns[1]++;
 			}
-		}
-		else
-		{
-			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to change to root directory, proceeding without backup.");
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Backed up file \"$file\".");
+			$returns[0]++;
 		}
 		$debug=@chdir("backend");
 		if($debug === true)
@@ -6172,7 +6157,7 @@
 			$files=@glob("*.php");
 			foreach($files as $file)
 			{
-				$debug=@copy($file,"../upgrade/backup-backend");
+				$debug=@copy($file,"../backup-backend");
 				if($debug !== true)
 				{
 					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to backup file \"$file\".");
@@ -6192,7 +6177,7 @@
 			$files=@glob("*.sqlite");
 			foreach($files as $file)
 			{
-				$debug=@copy($file,"../upgrade/backup-db");
+				$debug=@copy($file,"../backup-db");
 				if($debug !== true)
 				{
 					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to backup file \"$file\".");
@@ -6206,34 +6191,18 @@
 		{
 			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to change to database directory, proceeding without backup.");
 		}
-		$debug=@chdir("../upgrade");
-		if($debug === true)
-		{
-			$files=@glob("*.php");
-			foreach($files as $file)
-			{
-				$debug=@copy($file,"backup-upgrade");
-				if($debug !== true)
-				{
-					insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to backup file \"$file\".");
-					$returns[1]++;
-				}
-				insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Backed up file \"$file\".");
-				$returns[0]++;
-			}
-		}
-		else
-		{
-			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to change to upgrade directory, proceeding without backup.");
-		}
 		return new UpgradeReturn(0,$returns[0],$returns[1]);
 	}
 	//Function for running pre-processor
 	function run_pre_processor()
 	{
-		if(strpos(getcwd(),"files") === false)
+		if(strpos(getcwd(),"upgrade") === false)
 		{
-			$debug=@chdir("files");
+			$debug=@chdir("upgrade");
+			if($debug !== true)
+			{
+				$debug=@chdir("../upgrade");
+			}
 		}
 		else
 		{
@@ -6263,9 +6232,13 @@
 	//Function for replacing system files
 	function replace_files()
 	{
-		if(strpos(getcwd(),"files") === false)
+		if(strpos(getcwd(),"upgrade") === false)
 		{
-			$debug=@chdir("files");
+			$debug=@chdir("upgrade");
+			if($debug !== true)
+			{
+				$debug=@chdir("../upgrade");
+			}
 		}
 		else
 		{
@@ -6322,9 +6295,13 @@
 	//Function for upgrading databases
 	function upgrade_dbs()
 	{
-		if(strpos(getcwd(),"files") === false)
+		if(strpos(getcwd(),"upgrade") === false)
 		{
-			$debug=@chdir("files");
+			$debug=@chdir("upgrade");
+			if($debug !== true)
+			{
+				$debug=@chdir("../upgrade");
+			}
 		}
 		else
 		{
@@ -6354,9 +6331,13 @@
 	//Function for running post-processor
 	function run_post_processor()
 	{
-		if(strpos(getcwd(),"files") === false)
+		if(strpos(getcwd(),"upgrade") === false)
 		{
-			$debug=@chdir("files");
+			$debug=@chdir("upgrade");
+			if($debug !== true)
+			{
+				$debug=@chdir("../upgrade");
+			}
 		}
 		else
 		{
@@ -6388,9 +6369,13 @@
 	{
 		$returncode=0;
 		$returns=array(0,0);
-		if(strpos(getcwd(),"files") === false)
+		if(strpos(getcwd(),"upgrade") === false)
 		{
-			$debug=@chdir("files");
+			$debug=@chdir("upgrade");
+			if($debug !== true)
+			{
+				$debug=@chdir("../upgrade");
+			}
 		}
 		else
 		{
@@ -6760,8 +6745,79 @@
 	//Security functions
 	
 	//Function for checking admin flag
+	function check_admin_flag()
+	{
+		if(!empty($_SESSION['mrsadmin']) && $_SESSION['mrsadmin'] == "y")
+		{
+			return true;
+		}
+		return false;
+	}
 	//Function for checking IP address
+	function check_ip_address()
+	{
+		if(!empty($_SESSION['mrsip']) && $_SESSION['mrsip'] == $_SERVER['REMOTE_ADDR'])
+		{
+			return true;
+		}
+		return false;
+	}
 	//Function for checking useragent
+	function check_user_agent()
+	{
+		if(!empty($_SESSION['mrsua']) && $_SESSION['mrsua'] == $_SERVER['HTTP_USER_AGENT'])
+		{
+			return true;
+		}
+		return false;
+	}
 	//Function for checking identifier
+	function check_identifier()
+	{
+		$identifier=base64_encode($_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT'] . getcwd());
+		if(!empty($_SESSION['mrsid']) && $_SESSION['mrsid'] == $identifier)
+		{
+			return true;
+		}
+		return false;
+	}
+	//Function to reduce array of TRUE and FALSE values
+	function true_false_reduction($existing,$new)
+	{
+		$newval=0;
+		if($new === true)
+		{
+			$newval=1;
+		}
+		$existing *= $newval;
+		return $existing;
+	}
 	//Primary security checking function
+	function security_check($level)
+	{
+		$entries=array();
+		$entries[]=check_admin_flag();
+		if($level == 2 || $level == 5 || $level == 7)
+		{
+			$entries[]=check_ip_address();
+		}
+		if($level == 2 || $level == 5 || $level == 7)
+		{
+			$entries[]=check_ip_address();
+		}
+		if($level == 3 || $level == 6 || $level == 7)
+		{
+			$entries[]=check_user_agent();
+		}
+		if($level == 4 || $level == 5 || $level == 6 || $level == 7)
+		{
+			$entries[]=check_identifier();
+		}
+		$result=array_reduce($entries,"true_false_reduction",1);
+		if($result >= 1)
+		{
+			return true;
+		}
+		return false;
+	}
 ?>

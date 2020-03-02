@@ -1,3 +1,143 @@
+<?php
+	/* ORDER OF OPERATIONS
+	-Require object core
+	-Require function core
+	-Open session
+	-Open read-write connection to logging database
+	-Open read-only connection to system database
+	-Get required settings
+	-Close system database
+	-Set timezone
+	-Open read-only connection to bans database
+	-Check for active bans against username or IP address
+	-Close bans database
+	-Open read-only connection to music database
+	-Get counts of requests, songs and song lists
+	-Close music database
+	-Close logging database
+	*/
+	
+	require_once("backend/objects.php");
+	require_once("backend/functions.php");
+	
+	if(alt_sess_store() !== false)
+	{
+		session_save_path(alt_sess_store());
+	}
+	session_start();
+	
+	$logdb=open_db("db/logs.sqlite",SQLITE3_OPEN_READWRITE);
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Visited homepage");
+	
+	$sysdb=open_db("db/system.sqlite",SQLITE3_OPEN_READONLY);
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Opened system database in read mode");
+	$name=get_setting($db,"name");
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Obtained setting \"name\"");
+	$message=get_setting($db,"message");
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Obtained setting \"message\"");
+	$timezone=get_setting($db,"timezone");
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Obtained setting \"timezone\"");
+	$security=get_setting($db,"security");
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Obtained setting \"security\"");
+	$autorefresh=get_setting($db,"autorefresh");
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Obtained setting \"autorefresh\"");
+	switch(get_setting($db,"showreqonclose"))
+	{
+		case "y":
+		$showreqonclose=true;
+		break;
+		
+		case "n":
+		default:
+		$showreqonclose=false;
+		break;
+	}
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Obtained setting \"showreqonclose\"");
+	switch(get_setting($db,"displaystat"))
+	{
+		case "y":
+		$displaystat=true;
+		break;
+		
+		case "n":
+		default:
+		$displaystat=false;
+		break;
+	}
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Obtained setting \"displaystat\"");
+	switch(get_setting($db,"displaycomment"))
+	{
+		case "y":
+		$displaycomment=true;
+		break;
+		
+		case "n":
+		default:
+		$displaycomment=false;
+		break;
+	}
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Obtained setting \"displaycomment\"");
+	$hidereq=get_setting($db,"hidereq");
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Obtained setting \"hidereq\"");
+	$separator=get_setting($db,"separator");
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Obtained setting \"separator\"");
+	switch(get_setting($db,"requests"))
+	{
+		case "y":
+		$requests=true;
+		break;
+		
+		case "n":
+		default:
+		$requests=false;
+		break;
+	}
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Obtained setting \"requests\"");
+	$dateformat=get_setting($db,"dateformat");
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Obtained setting \"dateformat\"");
+	close_db($sysdb);
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Closed read-only handle to system database");
+	
+	date_default_timezone_set($timezone);
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Changed timezone to \"$timezone\"");
+	
+	$bans=array();
+	$bandb=open_db("db/bans.sqlite",SQLITE3_OPEN_READONLY);
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Opened bans database in read mode");
+	if(!empty($_SESSION['username']))
+	{
+		$bans=array_merge(get_all_active_bans_for_ip($bandb,$_SERVER['REMOTE_ADDR']),get_all_active_bans_for_uname($bandb,$_SESSION['username']));
+		insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Obtained active username and IP bans");
+	}
+	else
+	{
+		$bans=get_all_active_bans_for_ip($bandb,$_SERVER['REMOTE_ADDR']);
+	}
+	close_db($bandb);
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Closed read-only handle to bans database");
+	
+	$reqcount=0;
+	$songcount=0;
+	$listcount=0;
+	$listext="lists";
+	$musicdb=open_db("db/music.sqlite",SQLITE3_OPEN_READONLY);
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Opened music database in read mode");
+	$reqcount=count(get_all_requests($musicdb));
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Obtained count of requests in system");
+	$songcount=count_all_songs($musicdb);
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Obtained count of songs in system");
+	$listcount=count_song_lists($musicdb);
+	if($listcount == 1)
+	{
+		$listext="list";
+	}
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Obtained count of lists in system");
+	close_db($musicdb);
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Closed read-only handle to bans database");
+	
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"index.php","Closing read-write handle to logging database, last log message from this page");
+	close_db($logdb);
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -7,7 +147,7 @@
     <meta name="description" content="Microwave ovens.">
     <meta name="keywords" content="music, request, system, microwave, oven, russians, gpx, spoooooorts">
 	<link rel="shortcut icon" href="favicon/active.ico">
-    <title>Music Request System: V3 Engine Demo</title>
+    <title><?php echo $name; ?> Music Request System</title>
 	<style type="text/css">
     <!--
     body {
@@ -28,32 +168,22 @@
     <![endif]-->
   </head>
   <body>
-	<p>Hello! <a href="login.php">Enter administrative mode</a> | <a href="select.php">Request a song</a> | <a href="about.php">About the MRS</a></p>
-	<h1 style="text-align:center; text-decoration:underline;">The Music Request System: V3 Engine Demo Page</h1>
-	<h3>There have been &lt;number&gt; all-time requests on this system. Right now, we have &lt;really big number&gt; songs in our library.</h3>
-	<h3>This is the system message. GPX!</h3>
+	<!-- Processing details go here -->
+	<!-- Header goes here -->
+	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Music Request System</h1>
+	<h3>There have been <?php echo $reqcount; ?> all-time requests on this system. Right now, we have <?php echo $songcount; ?> songs in our library across <?php echo $listcount . " " . $listext; ?>.</h3>
+	<?php
+		if(!empty($message))
+		{
+			echo("<h3>$message</h3>\r\n");
+		}
+		if(is_logging_enabled())
+		{
+			echo("<h3>/!\ WARNING: System logging capabilities are enabled!</h3>\r\n");
+		}
+	?>
 	<hr>
-	<div style="opacity:1"><img src="newflag/active.gif" alt="New" border=="0px"><img src="newflag/active.gif" alt="New" border=="0px"><img src="newflag/active.gif" alt="New" border=="0px"><br>
-	Requested by: Nosy Requester #1. Requested at January 13, 2018, 11:50 PM EST<br>
-	Artist: Rough Trade, Title: High School Confidential, Album: Avoid Freud, Year: 1980<br>
-	This request has not yet been seen.</div>
-	<hr>
-	<div style="opacity:1">Requested by: Nosy Requester #2. Requested at January 13, 2018, 11:39 PM EST<br>
-	Artist: EMF, Title: Unbelievable<br>
-	This request has been added to the play queue.</div>
-	<hr>
-	<div style="opacity:0.7">Requested by: Nosy Requester #3. Requested at January 13, 2018, 11:40 PM EST<br>
-	Artist: The Eagles, Title: Hotel California, Duration: Way Too Long<br>
-	Comment: I know how much you hate this song, but can I hear it please?<br>
-	Request has been declined. The admin says "Eeeny, meeny, miny, NO!".</div>
-	<hr>
-	<div style="opacity:0.7">Requested by: Nosy Requester #4. Requested at January 13, 2018, 11:40 PM EST<br>
-	This is a custom request<br>
-	This request has been marked as played. The admin says "This is a response".</div>
-	<hr>
-	<div style="opacity:0.2">Requested by: Nosy Requester #5. Requested at January 11, 2018, 11:40 PM EST<br>
-	Old request<br>
-	This request has been marked as played.</div>
+	<!-- Requests or ban details go here -->
 	<hr>
 	<h4>This engine demo is presently using static data. It is not a representation of a real MRS.</h4>
   </body>

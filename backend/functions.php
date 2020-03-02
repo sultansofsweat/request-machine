@@ -952,10 +952,12 @@
 			trigger_error("Handle passed to function insert_system_log is not a valid database.",E_USER_ERROR);
 			return false;
 		}
-		if(get_setting($db,"syslog") == "n")
+		$db2=open_db("db/system.sqlite",SQLITE3_OPEN_READONLY);
+		if(get_setting($db2,"syslog") == "n")
 		{
 			return true;
 		}
+		close_db($db2);
 		$statement=$db->prepare("INSERT INTO system(ip,time,page,text) VALUES (?,?,?,?)");
 		if($statement !== false)
 		{
@@ -1299,10 +1301,12 @@
 			trigger_error("Handle passed to function insert_error_log is not a valid database.",E_USER_ERROR);
 			return false;
 		}
-		if(get_setting($db,"errlog") == "n")
+		$db2=open_db("db/system.sqlite",SQLITE3_OPEN_READONLY);
+		if(get_setting($db2,"errlog") == "n")
 		{
 			return true;
 		}
+		close_db($db2);
 		$statement=$db->prepare("INSERT INTO error(ip,time,page,text,error) VALUES (?,?,?,?,?)");
 		if($statement !== false)
 		{
@@ -1666,10 +1670,12 @@
 			trigger_error("Handle passed to function insert_login_log is not a valid database.",E_USER_ERROR);
 			return false;
 		}
-		if(get_setting($db,"inlog") == "n")
+		$db2=open_db("db/system.sqlite",SQLITE3_OPEN_READONLY);
+		if(get_setting($db2,"inlog") == "n")
 		{
 			return true;
 		}
+		close_db($db2);
 		$statement=$db->prepare("INSERT INTO login(ip,time,browser,status) VALUES (?,?,?,?)");
 		if($statement !== false)
 		{
@@ -5289,6 +5295,85 @@
 		//Exit
 		return $bans;
 	}
+	//Function for getting all active bans for a username
+	function get_all_active_bans_for_uname($db,$uname)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_all_bans_for_uname is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Set up default
+		$bans=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,date,reason,until FROM usernames WHERE username = ? AND until > ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,$uname,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				//Bind variables to statement
+				$debug=$statement->bindValue(2,time(),SQLITE3_INTEGER);
+				if($debug !== false)
+				{
+					//Execute statement
+					$result=$statement->execute();
+					if($result !== false)
+					{
+						//Loop through all entries
+						while($entry=$result->fetchArray(SQLITE3_ASSOC))
+						{
+							//Set up data format
+							$ban=array("id"=>-1,"username"=>$uname,"date"=>0,"until"=>PHP_INT_MAX,"reason"=>"Failed to obtain ban information. Where are all the geese when you need them?!?");
+							//Get data from result
+							if(isset($entry["ID"]))
+							{
+								$report["id"]=$entry["ID"];
+							}
+							if(isset($entry["Date"]))
+							{
+								$report["date"]=$entry["Date"];
+							}
+							if(isset($entry["Reason"]))
+							{
+								$report["reason"]=$entry["Reason"];
+							}
+							if(isset($entry["Until"]))
+							{
+								$report["until"]=$entry["Until"];
+							}
+							//Create report object
+							$banobject=new Ban($ban["id"],$ban["username"],$report["date"],$report["until"],$report["reason"]);
+							//Add object to list
+							$bans[]=$banobject;
+						}
+						//Close statement
+						$statement->close();
+						unset($statement);
+						return $bans;
+					}
+					//Failed to execute statement
+					trigger_error("Failed to execute statement in function get_all_bans_for_uname.",E_USER_ERROR);
+					goto failure;
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_all_bans_for_uname.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_all_bans_for_uname.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $bans;
+	}
 	
 	//Function for inserting an IP ban
 	function insert_ip_ban($db,$ip,$until,$reason=NULL)
@@ -5576,6 +5661,85 @@
 		}
 		//Failed to create statement
 		trigger_error("Failed to create statement in function get_all_bans_for_ip.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $bans;
+	}
+	//Function for getting all active bans for an IP
+	function get_all_active_bans_for_ip($db,$ip)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_all_active_bans_for_ip is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Set up default
+		$bans=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT id,date,reason,until FROM ips WHERE ip = ? AND until > ?");
+		if($statement !== false)
+		{
+			//Bind variables to statement
+			$debug=$statement->bindValue(1,$ip,SQLITE3_TEXT);
+			if($debug !== false)
+			{
+				//Bind variables to statement
+				$debug=$statement->bindValue(2,time(),SQLITE3_INTEGER);
+				if($debug !== false)
+				{
+					//Execute statement
+					$result=$statement->execute();
+					if($result !== false)
+					{
+						//Loop through all entries
+						while($entry=$result->fetchArray(SQLITE3_ASSOC))
+						{
+							//Set up data format
+							$ban=array("id"=>-1,"ip"=>$ip,"date"=>0,"until"=>PHP_INT_MAX,"reason"=>"Failed to obtain ban information. Where are all the geese when you need them?!?");
+							//Get data from result
+							if(isset($entry["ID"]))
+							{
+								$report["id"]=$entry["ID"];
+							}
+							if(isset($entry["Date"]))
+							{
+								$report["date"]=$entry["Date"];
+							}
+							if(isset($entry["Reason"]))
+							{
+								$report["reason"]=$entry["Reason"];
+							}
+							if(isset($entry["Until"]))
+							{
+								$report["until"]=$entry["Until"];
+							}
+							//Create report object
+							$banobject=new Ban($ban["id"],$ban["ip"],$report["date"],$report["until"],$report["reason"]);
+							//Add object to list
+							$bans[]=$banobject;
+						}
+						//Close statement
+						$statement->close();
+						unset($statement);
+						return $bans;
+					}
+					//Failed to execute statement
+					trigger_error("Failed to execute statement in function get_all_active_bans_for_ip.",E_USER_ERROR);
+					goto failure;
+				}
+			}
+			//Failed to bind variables to statement
+			trigger_error("Failed to bind values to statement in function get_all_active_bans_for_ip.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_all_active_bans_for_ip.",E_USER_ERROR);
 		failure:
 		//Close statement if necessary
 		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
@@ -6815,6 +6979,33 @@
 		}
 		$result=array_reduce($entries,"true_false_reduction",1);
 		if($result >= 1)
+		{
+			return true;
+		}
+		return false;
+	}
+?>
+<?php
+	//Helper functions, in no particularly useful order
+	
+	//Function for getting alternative session storage path, if set
+	function alt_sess_store()
+	{
+		$db=open_db("db/system.sqlite",SQLITE3_OPEN_READONLY);
+		$store=get_setting($db,"session");
+		$loc=get_setting($db,"sessloc");
+		if($store == "y" && !empty($loc) && file_exists($loc) && is_dir($loc))
+		{
+			return $loc;
+		}
+		return false;
+	}
+	//Function for checking if logging is enabled
+	function is_logging_enabled()
+	{
+		$db=open_db("db/system.sqlite",SQLITE3_OPEN_READONLY);
+		$syslog=get_setting($db,"syslog");
+		if($syslog == "y")
 		{
 			return true;
 		}

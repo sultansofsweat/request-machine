@@ -111,12 +111,12 @@
 	
 	class Song
 	{
-		private $id
+		private $id;
 		private $list;
 		private $details;
 		private $added;
 		private $count;
-		private $lastreq
+		private $lastreq;
 		
 		public function __construct($i,$l,$d,$a,$c,$r)
 		{

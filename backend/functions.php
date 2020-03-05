@@ -5306,7 +5306,7 @@
 		//Set up default
 		$bans=array();
 		//Prepare statement for selecting
-		$statement=$db->prepare("SELECT id,date,reason,until FROM usernames WHERE username = ? AND until > ?");
+		$statement=$db->prepare("SELECT id,date,reason,until FROM usernames WHERE username = ? AND (until > ? OR until = 0)");
 		if($statement !== false)
 		{
 			//Bind variables to statement
@@ -5682,7 +5682,7 @@
 		//Set up default
 		$bans=array();
 		//Prepare statement for selecting
-		$statement=$db->prepare("SELECT id,date,reason,until FROM ips WHERE ip = ? AND until > ?");
+		$statement=$db->prepare("SELECT id,date,reason,until FROM ips WHERE ip = ? AND (until > ? OR until = 0)");
 		if($statement !== false)
 		{
 			//Bind variables to statement
@@ -5749,6 +5749,185 @@
 		}
 		//Exit
 		return $bans;
+	}
+	
+	//Banhammer: automatic ban system
+	function banhammer($reason,$immediate=false,$login=false)
+	{
+		if($immediate === true)
+		{
+			$db=open_db("db/system.sqlite",SQLITE3_OPEN_READONLY);
+			$autoban=get_setting($db,"autoban");
+			close_db($db);
+			if($autoban != "y")
+			{
+				return true;
+			}
+			$db=open_db("db/bans.sqlite",SQLITE3_OPEN_READWRITE);
+			$bancount=get_all_bans_for_ip($db,$_SERVER['REMOTE_ADDR']);
+			$days=max(1,$bancount*2);
+			if($days > 30)
+			{
+				$bantime=0;
+			}
+			else
+			{
+				$bantime=time()+$days*24*60*60;
+			}
+			insert_ip_ban($db,$_SERVER['REMOTE_ADDR'],$bantime,"Automatic ban: $reason");
+			if(!empty($_SESSION['username']))
+			{
+				$bancount=get_all_bans_for_user($db,$_SESSION['username']);
+				$days=max(1,$bancount*2);
+				if($days > 30)
+				{
+					$bantime=0;
+				}
+				else
+				{
+					$bantime=time()+$days*24*60*60;
+				}
+				insert_uname_ban($db,$_SESSION['username'],$bantime,"Automatic ban: $reason");
+			}
+			super_banhammer();
+		}
+		else
+		{
+			$db=open_db("db/system.sqlite",SQLITE3_OPEN_READONLY);
+			if($login === true)
+			{
+				$failcount=get_setting($db,"failedlogin");
+			}
+			else
+			{
+				$failcount=get_setting($db,"disallowcount");
+			}
+			$autoban=get_setting($db,"autoban");
+			close_db($db);
+			if($autoban != "y")
+			{
+				return true;
+			}
+			if(!empty($_SESSION['banhammer']))
+			{
+				$_SESSION['banhammer']++;
+			}
+			else
+			{
+				$_SESSION['banhammer']=1;
+			}
+			if($_SESSION['banhammer'] >= $failcount)
+			{
+				$db=open_db("db/bans.sqlite",SQLITE3_OPEN_READWRITE);
+				$bancount=get_all_bans_for_ip($db,$_SERVER['REMOTE_ADDR']);
+				$days=max(1,$bancount*2);
+				if($days > 30)
+				{
+					$bantime=0;
+				}
+				else
+				{
+					$bantime=time()+$days*24*60*60;
+				}
+				insert_ip_ban($db,$_SERVER['REMOTE_ADDR'],$bantime,"Automatic ban: $reason");
+				if(!empty($_SESSION['username']))
+				{
+					$bancount=get_all_bans_for_user($db,$_SESSION['username']);
+					$days=max(1,$bancount*2);
+					if($days > 30)
+					{
+						$bantime=0;
+					}
+					else
+					{
+						$bantime=time()+$days*24*60*60;
+					}
+					insert_uname_ban($db,$_SESSION['username'],$bantime,"Automatic ban: $reason");
+				}
+				super_banhammer();
+			}
+		}
+	}
+	//Super Banhammer: follows system user-IP mappings and bans them accordingly
+	function super_banhammer()
+	{
+		$db=open_db("db/system.sqlite",SQLITE3_OPEN_READONLY);
+		$superban=get_setting($db,"superban");
+		close_db($db);
+		if($superban != "y")
+		{
+			return true;
+		}
+		$db=open_db("db/bans.sqlite",SQLITE3_OPEN_READWRITE);
+		$ipbans=get_all_ip_bans($db);
+		$userbans=get_all_uname_bans($db);
+		if(count($ipbans) > 0)
+		{
+			foreach($ipbans as $ban)
+			{
+				if(is_a($ban,Ban))
+				{
+					if($ban->getUntil() == 0 || $ban->getUntil() > time())
+					{
+						$users=get_ip_maps($db,$ban->getItem());
+						if(count($users) > 0)
+						{
+							foreach($users as $user)
+							{
+								$ubans=get_all_active_bans_for_uname($db,$user);
+								if(count($ubans) > 0)
+								{
+									foreach($ubans as $uban)
+									{
+										if(is_a($uban,Ban))
+										{
+											if($uban->getUntil() != 0 && $uban->getUntil() < $ban->getUntil())
+											{
+												insert_uname_ban($db,$user,$ban->getUntil(),"Automatic ban: collateral from ban on IP address \"" . $ban->getItem() . "\"");
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		if(count($userbans) > 0)
+		{
+			foreach($userbans as $ban)
+			{
+				if(is_a($ban,Ban))
+				{
+					if($ban->getUntil() == 0 || $ban->getUntil() > time())
+					{
+						$ips=get_username_maps($db,$ban->getItem());
+						if(count($ips) > 0)
+						{
+							foreach($ips as $ip)
+							{
+								$ibans=get_all_active_bans_for_ip($db,$ip);
+								if(count($ibans) > 0)
+								{
+									foreach($ibans as $iban)
+									{
+										if(is_a($iban,Ban))
+										{
+											if($iban->getUntil() != 0 && $iban->getUntil() < $ban->getUntil())
+											{
+												insert_ip_ban($db,$ip,$ban->getUntil(),"Automatic ban: collateral from ban on username \"" . $ban->getItem() . "\"");
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		close_db($db);
 	}
 	
 	//Function for getting all user-IP mappings
@@ -7006,6 +7185,117 @@
 		$db=open_db("db/system.sqlite",SQLITE3_OPEN_READONLY);
 		$syslog=get_setting($db,"syslog");
 		if($syslog == "y")
+		{
+			return true;
+		}
+		return false;
+	}
+	//Function for extracting request IDs from list of request objects
+	function extract_ids($reqs)
+	{
+		$ids=array();
+		foreach($reqs as $req)
+		{
+			if(is_a($req,Request))
+			{
+				$ids[]=$req->getID();
+			}
+		}
+		return $ids;
+	}
+	//Function for filtering based on duration and request time
+	function filter_duration($req)
+	{
+		if(!is_a($req,Request))
+		{
+			trigger_error("Request passed not in valid format, ignoring, expect problems.",E_USER_WARNING);
+			return true;
+		}
+		$db=open_db("db/system.sqlite",SQLITE3_OPEN_READONLY);
+		$duration=get_setting($db,"duration");
+		close_db($db);
+		if(($req->getTime()+$duration*60*60) <= time())
+		{
+			return false;
+		}
+		return true;
+	}
+	//Function for filtering based on day and request time
+	function filter_daily($req)
+	{
+		if(!is_a($req,Request))
+		{
+			trigger_error("Request passed not in valid format, ignoring, expect problems.",E_USER_WARNING);
+			return true;
+		}
+		if(($req->getTime()+24*60*60) <= time())
+		{
+			return false;
+		}
+		return true;
+	}
+	//Function for determining if system is in overload mode
+	function system_in_overload()
+	{
+		$db=open_db("db/system.sqlite",SQLITE3_OPEN_READONLY);
+		$overload=get_setting($db,"overload");
+		close_db($db);
+		$db=open_db("db/music.sqlite",SQLITE3_OPEN_READONLY);
+		$requests=array_merge(extract_ids(get_requests_by_status($db,0)),extract_ids(get_requests_by_status($db,1)));
+		close_db($db);
+		if($overload == 0 || count($requests) <= $overload)
+		{
+			return false;
+		}
+		return true;
+	}
+	//Function for determining if user is in queue and allowed to make more requests
+	function user_in_queue()
+	{
+		$db=open_db("db/system.sqlite",SQLITE3_OPEN_READONLY);
+		$queue=get_setting($db,"multireq");
+		close_db($db);
+		$db=open_db("db/music.sqlite",SQLITE3_OPEN_READONLY);
+		$ip=extract_ids(get_requests_by_ip($db,$_SERVER['REMOTE_ADDR']));
+		$open=array_merge(extract_ids(get_requests_by_status($db,0)),extract_ids(get_requests_by_status($db,1)));
+		$requests=array_intersect($ip,$open);
+		close_db($db);
+		if($queue == "y" || count($requests) <= 0)
+		{
+			return false;
+		}
+		return true;
+	}
+	//Function for determining if user has hit posting limits
+	function user_hit_limit()
+	{
+		$db=open_db("db/system.sqlite",SQLITE3_OPEN_READONLY);
+		$peruser=get_setting($db,"peruser");
+		$perip=get_setting($db,"perip");
+		$daily=get_setting($db,"daily");
+		close_db($db);
+		$db=open_db("db/music.sqlite",SQLITE3_OPEN_READONLY);
+		$times=extract_ids(array_filter(get_all_requests($db),"filter_duration"));
+		$day=extract_ids(array_filter(get_all_requests($db),"filter_daily"));
+		if(!empty($_SESSION['username']))
+		{
+			$user=extract_ids(get_requests_by_user($db,$_SESSION['username']));
+		}
+		else
+		{
+			$user=array();
+		}
+		$ip=extract_ids(get_requests_by_ip($db,$_SERVER['REMOTE_ADDR']));
+		close_db($db);
+		if($peruser > 0 && count(array_intersect($user,$times)) >= $peruser)
+		{
+			return true;
+		}
+		if($perip > 0 && count(array_intersect($ip,$times)) >= $perip)
+		{
+			return true;
+		}
+		if($daily > 0 && count(array_intersect($ip,$day)) >= $daily)
 		{
 			return true;
 		}

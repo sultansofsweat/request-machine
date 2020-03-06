@@ -3,6 +3,7 @@
 	-Require function core
 	-Include error handler
 	-Open session
+	-Set up redirect information
 	-If signed in, redirect out
 	-Open read-write connection to logging database
 	-Open read-only connection to system database
@@ -25,6 +26,15 @@
 		session_save_path(alt_sess_store());
 	}
 	session_start();
+	
+	if(!empty($_GET['redirect']) && file_exists($_GET['redirect'] . ".php"))
+	{
+		$redirect=$_GET['redirect'] . ".php";
+	}
+	else
+	{
+		$redirect="";
+	}
 	
 	$logdb=open_db("db/logs.sqlite",SQLITE3_OPEN_READWRITE);
 	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"login.php","Visited login page");
@@ -75,6 +85,14 @@
 	
 	if(!empty($_POST['password']))
 	{
+		if(!empty($_POST['redirect']) && file_exists($_POST['redirect']))
+		{
+			$redirect=$_POST['redirect'];
+		}
+		else
+		{
+			$redirect="index.php?in=yes";
+		}
 		insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"login.php","Begin processing password");
 		$success=password_verify($_POST['password'],$passwd);
 		if($success === true)
@@ -86,7 +104,7 @@
 			$_SESSION['mrsid']=base64_encode($_SERVER['REMOTE_ADDR'] . $_SERVER['HTTP_USER_AGENT'] . getcwd());
 			insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"login.php","Closing read-write handle to logging database, last log message from this page");
 			close_db($logdb);
-			die("<script type=\"text/javascript\">window.location = \"index.php?in=yes\"</script>");
+			die("<script type=\"text/javascript\">window.location = \"$redirect\"</script>");
 		}
 		else
 		{
@@ -136,6 +154,7 @@
 	?>
 	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Music Request System: Log In</h1>
 	<form action="login.php" method="post">
+	<input type="hidden" name="redirect" value="<?php echo $redirect; ?>">
 	Enter the administrative password: <input type="password" name="password"><br>
 	<input type="submit" value="Log in"><input type="button" value="Cancel" onclick="window.location.href='index.php'">
 	</form>

@@ -97,6 +97,7 @@
 		$success=password_verify($_POST['password'],$passwd);
 		if($success === true)
 		{
+			insert_login_log($logdb,$_SERVER['REMOTE_ADDR'],$_SERVER['HTTP_USER_AGENT'],time(),1);
 			insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"login.php","Password successfully verified, escalating to admin privileges");
 			$_SESSION['mrsadmin']="y";
 			$_SESSION['mrsip']=$_SERVER['REMOTE_ADDR'];
@@ -108,6 +109,7 @@
 		}
 		else
 		{
+			insert_login_log($logdb,$_SERVER['REMOTE_ADDR'],$_SERVER['HTTP_USER_AGENT'],time(),0);
 			insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"login.php","Password does not match");
 			banhammer("repeated invalid logins",false,true);
 			$failed=true;

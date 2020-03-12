@@ -585,7 +585,7 @@
 		//Initialize set of defaults
 		$settings=array();
 		//Prepare statement for selecting
-		$statement=$db->prepare("SELECT name,setting FROM obsoletesettings");
+		$statement=$db->prepare("SELECT name,setting,static FROM obsoletesettings");
 		if($statement !== false)
 		{
 			//Execute statement
@@ -595,26 +595,21 @@
 				//Loop through all entries
 				while($entry=$result->fetchArray(SQLITE3_ASSOC))
 				{
+					$setting=array("name"=>"error","value"=>"error","default"=>"error");
 					//Get data from result
-					if(isset($entry["Setting"]) && isset($entry["Name"]))
+					if(isset($entry["Setting"]))
 					{
-						$settings[$entry["Name"]]=$entry["Setting"];
+						$settings["value"]=$entry["Setting"];
 					}
-					else
+					if(isset($entry["Name"]))
 					{
-						if(isset($entry["Name"]))
-						{
-							trigger_error("Setting \"" . $entry["Name"] . "\" has no corresponding data. Ignoring it, expect problems.",E_USER_WARNING);
-						}
-						elseif(isset($entry["Setting"]))
-						{
-							trigger_error("Retrieved setting has data but no corresponding name. Ignoring it, expect problems.",E_USER_WARNING);
-						}
-						else
-						{
-							trigger_error("Retrieved setting has no name or data. Ignoring it, expect problems.",E_USER_WARNING);
-						}
+						$settings["name"]=$entry["Name"];
 					}
+					if(isset($entry["Static"]))
+					{
+						$settings["default"]=$entry["Static"];
+					}
+					$settings[]=$setting;
 				}
 				//Close statement
 				$statement->close();
@@ -867,7 +862,7 @@
 						$versioninfo["installed"]=$entry["Installed"];
 					}
 					//Create version object
-					$versionobject=new Version($verinfo["build"],$verinfo["major"],$verinfo["minor"],$verinfo["revision"],$verinfo["tag"],$verinfo["released"],$verinfo["installed"]);
+					$versionobject=new Version($versioninfo["build"],$versioninfo["major"],$versioninfo["minor"],$versioninfo["revision"],$versioninfo["tag"],$versioninfo["released"],$versioninfo["installed"]);
 					//Add info to list
 					$infos[]=$versionobject;
 				}
@@ -3108,57 +3103,66 @@
 			return false;
 		}
 		$details=get_deleted_song($db,$id);
-		$statement=$db->prepare("INSERT INTO songs(list,details,added,count,lastreq) VALUES (?,?,?,?,?)");
-		if($statement !== false)
+		$debug=permanently_delete_song($db,$id);
+		if($debug === true)
 		{
-			//Bind variables
-			$debug=$statement->bindValue(1,$details->getList(),SQLITE3_TEXT);
-			if($debug !== false)
+			$statement=$db->prepare("INSERT INTO songs(list,details,added,count,lastreq) VALUES (?,?,?,?,?)");
+			if($statement !== false)
 			{
-				$debug=$statement->bindValue(2,$details->getRawDetails(),SQLITE3_TEXT);
+				//Bind variables
+				$debug=$statement->bindValue(1,$details->getList(),SQLITE3_TEXT);
 				if($debug !== false)
 				{
-					$debug=$statement->bindValue(3,$details->getAdded(),SQLITE3_INTEGER);
+					$debug=$statement->bindValue(2,$details->getRawDetails(),SQLITE3_TEXT);
 					if($debug !== false)
 					{
-						$debug=$statement->bindValue(4,$details->getCount(),SQLITE3_INTEGER);
+						$debug=$statement->bindValue(3,$details->getAdded(),SQLITE3_INTEGER);
 						if($debug !== false)
 						{
-							$debug=$statement->bindValue(5,$details->getLastReq(),SQLITE3_INTEGER);
+							$debug=$statement->bindValue(4,$details->getCount(),SQLITE3_INTEGER);
 							if($debug !== false)
 							{
-								//Execute statement
-								$result=$statement->execute();
-								if($result !== false)
+								$debug=$statement->bindValue(5,$details->getLastReq(),SQLITE3_INTEGER);
+								if($debug !== false)
 								{
-									//Close statement
-									$statement->close();
-									unset($statement);
-									return true;
+									//Execute statement
+									$result=$statement->execute();
+									if($result !== false)
+									{
+										//Close statement
+										$statement->close();
+										unset($statement);
+										return true;
+									}
+									//Failed to execute statement
+									trigger_error("Failed to execute statement in function restore_deleted_song.",E_USER_ERROR);
+									goto failure;
 								}
-								//Failed to execute statement
-								trigger_error("Failed to execute statement in function restore_deleted_song.",E_USER_ERROR);
-								goto failure;
 							}
 						}
 					}
 				}
+				//Failed to bind variables to statement
+				trigger_error("Failed to bind values to statement in function restore_deleted_song.",E_USER_ERROR);
+				goto failure;
 			}
-			//Failed to bind variables to statement
-			trigger_error("Failed to bind values to statement in function restore_deleted_song.",E_USER_ERROR);
-			goto failure;
+			//Failed to create statement
+			trigger_error("Failed to create statement in function restore_deleted_song.",E_USER_ERROR);
+			failure:
+			//Close statement if necessary
+			if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+			{
+				$statement->close();
+				unset($statement);
+			}
+			//Exit
+			return false;
 		}
-		//Failed to create statement
-		trigger_error("Failed to create statement in function restore_deleted_song.",E_USER_ERROR);
-		failure:
-		//Close statement if necessary
-		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		else
 		{
-			$statement->close();
-			unset($statement);
+			trigger_error("Failed to remove data from dumping database. Cannot proceed.",E_USER_ERROR);
+			return false;
 		}
-		//Exit
-		return false;
 	}
 	//Function for restoring all deleted songs
 	function restore_deleted_songs($db)
@@ -5956,15 +5960,15 @@
 					//Get data from result
 					if(isset($entry["Username"]))
 					{
-						$report["username"]=$entry["Username"];
+						$mapping["username"]=$entry["Username"];
 					}
 					if(isset($entry["IP"]))
 					{
-						$report["ip"]=$entry["IP"];
+						$mapping["ip"]=$entry["IP"];
 					}
 					if(isset($entry["Count"]))
 					{
-						$report["count"]=$entry["Count"];
+						$mapping["count"]=$entry["Count"];
 					}
 					//Add to list
 					$mappings[]=$mapping;
@@ -7300,5 +7304,28 @@
 			return true;
 		}
 		return false;
+	}
+	//Function for mapping out internal and external song list formats
+	function map_format_string()
+	{
+		$mapping=array();
+		$db=open_db("db/system.sqlite",SQLITE3_OPEN_READONLY);
+		$intformat=explode("|",get_setting($db,"intformat"));
+		$extformat=explode("|",get_setting($db,"extformat"));
+		close_db($db);
+		while(count($intformat) > 0)
+		{
+			if(count($extformat) <= 0)
+			{
+				break;
+			}
+			$string=array_shift($intformat);
+			if(strpos($string,"*") === false)
+			{
+				$map=array_shift($extformat);
+				$mapping[$string]=$map;
+			}
+		}
+		return $mapping;
 	}
 ?>

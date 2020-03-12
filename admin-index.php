@@ -84,7 +84,10 @@
 		}
 	?>
 	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Music Request System: Control Center</h1>
-	<p><a href="admin-dump.php">Show All System Settings</a></p>
+	<p><a href="admin-dump.php">Show All System Settings</a><br>
+	<a href="admin-resprev.php">Reset <b>All</b> To Previous Values</a><br>
+	<a href="admin-resdef.php">Reset <b>All</b> To System Defaults</a><br>
+	<a href="admin-optimize.php">Optimize System Databases</a></p>
 	<p><a href="admin-passwd.php">System Security</a><br>
 	<a href="admin-sys.php">System Information</a><br>
 	<a href="admin-bkg.php">System Background</a><br>

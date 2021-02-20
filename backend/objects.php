@@ -464,4 +464,46 @@
 			return $this->fail;
 		}
 	}
+	
+	class Setting
+	{
+		private $name;
+		private $current;
+		private $previous;
+		private $default;
+		
+		public function __construct($n,$s)
+		{
+			$this->name=$n;
+			$this->current=$s;
+			$this->previous="Not set";
+			$this->default="Not set";
+		}
+		
+		public function getName()
+		{
+			return $this->name;
+		}
+		public function getCurrent()
+		{
+			return $this->current;
+		}
+		public function getPrevious()
+		{
+			return $this->previous;
+		}
+		public function getDefault()
+		{
+			return $this->default;
+		}
+		
+		public function setPrevious($p)
+		{
+			$this->previous=$p;
+		}
+		public function setDefault($d)
+		{
+			$this->default=$d;
+		}
+	}
 ?>

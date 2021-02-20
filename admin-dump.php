@@ -3,48 +3,6 @@
 	require_once("backend/objects.php");
 	require_once("backend/functions.php");
 	
-	class Setting
-	{
-		private $name;
-		private $current;
-		private $previous;
-		private $default;
-		
-		public function __construct($n,$s)
-		{
-			$this->name=$n;
-			$this->current=$s;
-			$this->previous="Not set";
-			$this->default="Not set";
-		}
-		
-		public function getName()
-		{
-			return $this->name;
-		}
-		public function getCurrent()
-		{
-			return $this->current;
-		}
-		public function getPrevious()
-		{
-			return $this->previous;
-		}
-		public function getDefault()
-		{
-			return $this->default;
-		}
-		
-		public function setPrevious($p)
-		{
-			$this->previous=$p;
-		}
-		public function setDefault($d)
-		{
-			$this->default=$d;
-		}
-	}
-	
 	if(alt_sess_store() !== false)
 	{
 		session_save_path(alt_sess_store());

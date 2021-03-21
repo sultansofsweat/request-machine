@@ -20,6 +20,8 @@
 	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"admin-dump.php","Obtained setting \"security\"");
 	$current=get_all_settings($sysdb);
 	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"admin-dump.php","Obtained list of all current settings");
+	$descriptions=get_all_descriptions($sysdb);
+	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"admin-dump.php","Obtained list of all setting descriptions");
 	$previous=get_all_previous($sysdb);
 	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"admin-dump.php","Obtained list of all previous settings");
 	$defaults=get_all_defaults($sysdb);
@@ -32,7 +34,12 @@
 	{
 		if($setting != "passwd" && $setting != "apipass" && $setting != "subpass")
 		{
-			$settings[$setting]=new Setting($setting,$value);
+			$description="";
+			if(isset($descriptions[$setting]))
+			{
+				$description=$descriptions[$setting];
+			}
+			$settings[$setting]=new Setting($setting,$description,$value);
 		}
 	}
 	foreach($previous as $setting=>$value)
@@ -111,6 +118,7 @@
 	<thead>
 	<tr>
 	<th>Name</th>
+	<th>Description</th>
 	<th>Current</th>
 	<th>Previous</th>
 	<th>Default</th>
@@ -120,7 +128,7 @@
 	<?php
 		foreach($settings as $setting)
 		{
-			echo("<tr><td>" . $setting->getName() . "</td><td>" . $setting->getCurrent() . "</td><td>" . $setting->getPrevious() . "</td><td>" . $setting->getDefault() . "</td></tr>");
+			echo("<tr><td>" . $setting->getName() . "</td><td>" . $setting->getDescription() . "</td><td>" . $setting->getCurrent() . "</td><td>" . $setting->getPrevious() . "</td><td>" . $setting->getDefault() . "</td></tr>");
 		}
 	?>
 	</tbody>

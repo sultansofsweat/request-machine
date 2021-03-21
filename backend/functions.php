@@ -273,6 +273,69 @@
 		//Exit
 		return $settings;
 	}
+	//Function for getting settings descriptions
+	function get_all_descriptions($db)
+	{
+		if(!is_a($db,"SQLite3"))
+		{
+			trigger_error("Handle passed to function get_all_descriptions is not a valid database.",E_USER_ERROR);
+			return array();
+		}
+		//Initialize set of defaults
+		$settings=array();
+		//Prepare statement for selecting
+		$statement=$db->prepare("SELECT name,description FROM settings");
+		if($statement !== false)
+		{
+			//Execute statement
+			$result=$statement->execute();
+			if($result !== false)
+			{
+				//Loop through all entries
+				while($entry=$result->fetchArray(SQLITE3_ASSOC))
+				{
+					//Get data from result
+					if(isset($entry["Description"]) && isset($entry["Name"]))
+					{
+						$settings[$entry["Name"]]=$entry["Description"];
+					}
+					else
+					{
+						if(isset($entry["Name"]))
+						{
+							trigger_error("Setting \"" . $entry["Name"] . "\" has no corresponding description. Ignoring it, expect problems.",E_USER_WARNING);
+						}
+						elseif(isset($entry["Setting"]))
+						{
+							trigger_error("Retrieved setting has description but no corresponding name. Ignoring it, expect problems.",E_USER_WARNING);
+						}
+						else
+						{
+							trigger_error("Retrieved setting has no name or description. Ignoring it, expect problems.",E_USER_WARNING);
+						}
+					}
+				}
+				//Close statement
+				$statement->close();
+				unset($statement);
+				return $settings;
+			}
+			//Failed to execute statement
+			trigger_error("Failed to execute statement in function get_all_descriptions.",E_USER_ERROR);
+			goto failure;
+		}
+		//Failed to create statement
+		trigger_error("Failed to create statement in function get_all_descriptions.",E_USER_ERROR);
+		failure:
+		//Close statement if necessary
+		if(isset($statement) && is_a($statement,"SQLite3Stmt"))
+		{
+			$statement->close();
+			unset($statement);
+		}
+		//Exit
+		return $settings;
+	}
 	//Function for getting a setting
 	function get_setting($db,$name)
 	{

@@ -468,13 +468,15 @@
 	class Setting
 	{
 		private $name;
+		private $description;
 		private $current;
 		private $previous;
 		private $default;
 		
-		public function __construct($n,$s)
+		public function __construct($n,$d,$s)
 		{
 			$this->name=$n;
+			$this->description=$d;
 			$this->current=$s;
 			$this->previous="Not set";
 			$this->default="Not set";
@@ -483,6 +485,10 @@
 		public function getName()
 		{
 			return $this->name;
+		}
+		public function getDescription()
+		{
+			return $this->description;
 		}
 		public function getCurrent()
 		{

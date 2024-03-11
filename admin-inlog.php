@@ -75,7 +75,7 @@
     <meta name="description" content="Microwave ovens.">
     <meta name="keywords" content="music, request, system, microwave, oven, russians, gpx, spoooooorts">
 	<link rel="shortcut icon" href="favicon/active.ico">
-    <title><?php echo $name; ?> Music Request System: Login Log</title>
+    <title><?php echo $name; ?> Request Machine: Login Log</title>
 	<script type="text/javascript" src="backend/jquery.js"></script>
 	<script type="text/javascript" src="backend/jquery.tablesorter.js"></script>
 	<script type="text/javascript" src="backend/jquery.tablesorter.widgets.js"></script>
@@ -111,7 +111,7 @@
     <![endif]-->
   </head>
   <body>
-	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Music Request System: System Login Attempts</h1>
+	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Request Machine: System Login Attempts</h1>
 	<p>Current state of login attempt logging:&nbsp;
 	<?php
 		switch($inlog)

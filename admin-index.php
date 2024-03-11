@@ -52,7 +52,7 @@
     <meta name="description" content="Microwave ovens.">
     <meta name="keywords" content="music, request, system, microwave, oven, russians, gpx, spoooooorts">
 	<link rel="shortcut icon" href="favicon/active.ico">
-    <title><?php echo $name; ?> Music Request System: Central Control</title>
+    <title><?php echo $name; ?> Request Machine: Central Control</title>
 	<style type="text/css">
     <!--
     body {
@@ -83,7 +83,7 @@
 			trigger_error("Failed to change settings.",E_USER_ERROR);
 		}
 	?>
-	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Music Request System: Control Center</h1>
+	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Request Machine: Control Center</h1>
 	<p><a href="admin-dump.php">Show All System Settings</a><br>
 	<a href="admin-resprev.php">Reset <b>All</b> To Previous Values</a><br>
 	<a href="admin-resdef.php">Reset <b>All</b> To System Defaults</a><br>

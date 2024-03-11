@@ -1,5 +1,5 @@
 <?php
-	//This is the MRS object core, which is to be included with the functions page
+	//This is the RM object core, which is to be included with the functions page
 ?>
 <?php
 	class LogEntry

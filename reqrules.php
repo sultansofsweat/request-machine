@@ -43,7 +43,7 @@
     <meta name="description" content="Microwave ovens.">
     <meta name="keywords" content="music, request, system, microwave, oven, russians, gpx, spoooooorts">
 	<link rel="shortcut icon" href="favicon/active.ico">
-    <title><?php echo $name; ?> Music Request System: Request Rules</title>
+    <title><?php echo $name; ?> Request Machine: Request Rules</title>
 	<style type="text/css">
     <!--
     body {
@@ -64,9 +64,9 @@
     <![endif]-->
   </head>
   <body>
-	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Music Request System: Request Rules</h1>
+	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Request Machine: Request Rules</h1>
 	<hr>
-	<p>The general rules for requests can be found <a href="http://greyghost.mooo.com/live-stream-rules.html">here</a>, however this request system has a few of it's own. This page will also serve to re-iterate a few rules as well.</p>
+	<p>The general rules for requests can be found <a target="_blank" href="http://greyghost.mooo.com/live-stream-rules.html">here</a>, however this request system has a few of it's own. This page will also serve to re-iterate a few rules as well.</p>
 	<ul>
 	<li>Please don't attempt to make requests if the system is off.</li>
 	<li>If you find the system is off, get in touch with me and I'll figure it out from there. Do NOT, however, repeatedly contact me; once is enough usually.</li>

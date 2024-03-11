@@ -127,7 +127,7 @@
     <meta name="description" content="Microwave ovens.">
     <meta name="keywords" content="music, request, system, microwave, oven, russians, gpx, spoooooorts">
 	<link rel="shortcut icon" href="favicon/active.ico">
-    <title><?php echo $name; ?> Music Request System: Log in</title>
+    <title><?php echo $name; ?> Request Machine: Log in</title>
 	<style type="text/css">
     <!--
     body {
@@ -154,7 +154,7 @@
 			trigger_error("The specified password was incorrect.",E_USER_WARNING);
 		}
 	?>
-	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Music Request System: Log In</h1>
+	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Request Machine: Log In</h1>
 	<form action="login.php" method="post">
 	<input type="hidden" name="redirect" value="<?php echo $redirect; ?>">
 	Enter the administrative password: <input type="password" name="password"><br>

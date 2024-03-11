@@ -155,7 +155,7 @@
     <meta name="description" content="Microwave ovens.">
     <meta name="keywords" content="music, request, system, microwave, oven, russians, gpx, spoooooorts">
 	<link rel="shortcut icon" href="favicon/active.ico">
-    <title><?php echo $name; ?> Music Request System</title>
+    <title><?php echo $name; ?> Request Machine</title>
 	<?php
 		if($autorefresh > 0)
 		{
@@ -209,7 +209,7 @@
 		
 		if(security_check($security) === true)
 		{
-			echo("<a href=\"logout.php\">Exit administrative mode</a> | <a href=\"admin-index.php\">MRS Central Control</a><br>\r\n");
+			echo("<a href=\"logout.php\">Exit administrative mode</a> | <a href=\"admin-index.php\">RM Central Control</a><br>\r\n");
 		}
 		else
 		{
@@ -218,7 +218,7 @@
 		
 		if(count($bans) > 0)
 		{
-			echo("You have been <b>banned</b> from this MRS. See details below and/or contact the BOFH. | ");
+			echo("You have been <b>banned</b> from this Request Machine. See details below and/or contact the BOFH. | ");
 		}
 		elseif(system_in_overload())
 		{
@@ -238,13 +238,13 @@
 		}
 		else
 		{
-			echo("This MRS is <b>closed</b> and not accepting requests. | ");
+			echo("The Machine is <b>closed</b> and not accepting requests. | ");
 		}
 		
-		echo("<a href=\"reqrules.php\">Request rules</a> | <a href=\"about.php\">About the MRS</a>");
+		echo("<a href=\"reqrules.php\">Request rules</a> | <a href=\"about.php\">About the RM</a>");
 	?>
 	</p>
-	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Music Request System</h1>
+	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Request Machine</h1>
 	<h3>There have been <?php echo $reqcount; ?> all-time requests on this system. Right now, we have <?php echo $songcount; ?> songs in our library across <?php echo $listcount . " " . $listext; ?>.</h3>
 	<?php
 		if(!empty($message))

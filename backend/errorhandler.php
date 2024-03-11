@@ -1,5 +1,5 @@
 <?php
-	//This file contains the MRS error handler, which is used to replace the built-in that PHP uses
+	//This file contains the RM error handler, which is used to replace the built-in that PHP uses
 	
 	require_once("backend/functions.php");
 	

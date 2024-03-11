@@ -66,7 +66,7 @@
     <meta name="description" content="Microwave ovens.">
     <meta name="keywords" content="music, request, system, microwave, oven, russians, gpx, spoooooorts">
 	<link rel="shortcut icon" href="favicon/active.ico">
-    <title><?php echo $name; ?> Music Request System: Log out</title>
+    <title><?php echo $name; ?> Request Machine: Log out</title>
 	<style type="text/css">
     <!--
     body {
@@ -93,7 +93,7 @@
 			trigger_error("The specified password was incorrect.",E_USER_WARNING);
 		}
 	?>
-	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Music Request System: Log Out</h1>
+	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Request Machine: Log Out</h1>
 	<form action="logout.php" method="post">
 	Are you sure you want to log out?<br>
 	<input type="hidden" name="submit" value="yes">

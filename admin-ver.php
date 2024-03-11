@@ -50,7 +50,7 @@
     <meta name="description" content="Microwave ovens.">
     <meta name="keywords" content="music, request, system, microwave, oven, russians, gpx, spoooooorts">
 	<link rel="shortcut icon" href="favicon/active.ico">
-    <title><?php echo $name; ?> Music Request System: Version History</title>
+    <title><?php echo $name; ?> Request Machine: Version History</title>
 	<script type="text/javascript" src="backend/jquery.js"></script>
 	<script type="text/javascript" src="backend/jquery.tablesorter.js"></script>
 	<script type="text/javascript" src="backend/jquery.tablesorter.widgets.js"></script>
@@ -86,7 +86,7 @@
     <![endif]-->
   </head>
   <body>
-	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Music Request System: Version History</h1>
+	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Request Machine: Version History</h1>
 	<table id="stats" class="tablesorter-ice">
 	<thead>
 	<tr>

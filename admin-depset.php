@@ -66,7 +66,7 @@
     <meta name="description" content="Microwave ovens.">
     <meta name="keywords" content="music, request, system, microwave, oven, russians, gpx, spoooooorts">
 	<link rel="shortcut icon" href="favicon/active.ico">
-    <title><?php echo $name; ?> Music Request System: Deprecated Settings</title>
+    <title><?php echo $name; ?> Request Machine: Deprecated Settings</title>
 	<script type="text/javascript" src="backend/jquery.js"></script>
 	<script type="text/javascript" src="backend/jquery.tablesorter.js"></script>
 	<script type="text/javascript" src="backend/jquery.tablesorter.widgets.js"></script>
@@ -101,7 +101,7 @@
     <![endif]-->
   </head>
   <body>
-	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Music Request System: Deprecated Settings</h1>
+	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Request Machine: Deprecated Settings</h1>
 	<p><a href="admin-depset.php?clear=y">Clear settings</a> WARNING: this is <b>IMMEDIATE</b> and <b><u>IRREVERSIBLE</u></b>!!!</p>
 	<table id="stats" class="tablesorter-ice">
 	<thead>

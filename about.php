@@ -32,7 +32,7 @@
 	$copyinfo=get_setting($sysdb,"copyinfo");
 	if(empty($copyinfo))
 	{
-		$copyinfo="<p>No copyright information pertaining to this particular MRS was provided by the BOFH. You should talk to them if you want to know more about its purpose.</p>";
+		$copyinfo="<p>No copyright information pertaining to this particular Request Machine was provided by the BOFH. You should talk to them if you want to know more about its purpose.</p>";
 	}
 	insert_system_log($logdb,$_SERVER['REMOTE_ADDR'],time(),"about.php","Obtained setting \"copyinfo\"");
 	switch(get_setting($sysdb,"syslog"))
@@ -101,7 +101,7 @@
     <meta name="description" content="Microwave ovens.">
     <meta name="keywords" content="music, request, system, microwave, oven, russians, gpx, spoooooorts">
 	<link rel="shortcut icon" href="favicon/active.ico">
-    <title><?php echo $name; ?> Music Request System: About This MRS</title>
+    <title><?php echo $name; ?> Request Machine: About This RM</title>
 	<style type="text/css">
     <!--
     body {
@@ -122,8 +122,8 @@
     <![endif]-->
   </head>
   <body>
-	<h1 style="text-align:center; text-decoration:underline;">About The <?php echo $name; ?> Music Request System</h1>
-	<h3>MRS Install Version</h3>
+	<h1 style="text-align:center; text-decoration:underline;">About The <?php echo $name; ?> Request Machine</h1>
+	<h3>Request Machine Install Version</h3>
 	<p><b>Version: <?php echo $version->getMajor() . "." . $version->getMinor() . $version->getTag(); ?><br>
 	Revision: <?php echo $version->getRevision(); ?><br>
 	Build code: <?php echo $version->getBuildCode(); ?><br>
@@ -136,21 +136,21 @@
 	<?php
 		if($banhammer == "y" && $superban == "y")
 		{
-			echo("<p>This MRS is equipped with the Super Banhammer&trade;. Ask the BOFH about it.</p>\r\n");
+			echo("<p>This RM is equipped with the Super Banhammer&trade;. Ask the BOFH about it.</p>\r\n");
 		}
 		elseif($banhammer == "y" && $superban == "n")
 		{
-			echo("<p>This MRS is equipped with the Banhammer&trade;. Ask the BOFH about it.</p>\r\n");
+			echo("<p>This RM is equipped with the Banhammer&trade;. Ask the BOFH about it.</p>\r\n");
 		}
 		elseif($banhammer == "n" && $superban == "y")
 		{
-			echo("<p>This MRS is equipped with enhanced banning capabilities. Ask the BOFH about them.</p>\r\n");
+			echo("<p>This RM is equipped with enhanced banning capabilities. Ask the BOFH about them.</p>\r\n");
 		}
 	?>
 	<hr>
-	<h3>Music Request System Copyright Information</h3>
-	<p>The Music Request System (MRS) is copyright &copy; 2015-2021 Brad Hunter/<a href="http://www.youtube.com/user/carnelprod666" target="_blank">CarnelProd666</a>. All code pertaining to the MRS itself (and ONLY the MRS!) is licensed under the <a href="license.txt" target="_blank">DBAD Public License</a>, version 1.1. Learn more about the MRS <a href="http://firealarms.mooo.com/mrs" target="_blank">here</a>. Comments should be directed to the system administrator/BOFH and/or <a href="http://github.com/sultansofsweat" target="_blank">the software vendor</a>.</p>
-	<p>The MRS makes use of <a href="https://sqlite.org" target="_blank">SQLite</a>, <a href="http://jquery.com/" target="_blank">JQuery</a> and the <a href="https://mottie.github.io/tablesorter/docs/" target="_blank">TableSorter</a> plugin. JQuery and TableSorter are licensed under the <a href="https://tldrlegal.com/license/mit-license" target="_blank">MIT license</a>. SQLite is <a href="https://www.sqlite.com/copyright.html" target="_blank">public domain</a>.</p>
+	<h3>Request Machine Copyright Information</h3>
+	<p>The Request Machine (RM) is copyright &copy; 2015-2024 Brad Hunter/<a href="http://www.youtube.com/user/carnelprod666" target="_blank">CarnelProd666</a>. All code pertaining to the RM itself (and ONLY the RM!) is licensed under the <a href="license.txt" target="_blank">DBAD Public License</a>, version 1.1. Learn more about the Request Machine <a href="http://firealarms.mooo.com/mrs" target="_blank">here</a>. Comments should be directed to the system administrator/BOFH and/or <a href="http://github.com/sultansofsweat" target="_blank">the software vendor</a>.</p>
+	<p>The Request Machine makes use of <a href="https://sqlite.org" target="_blank">SQLite</a>, <a href="http://jquery.com/" target="_blank">JQuery</a> and the <a href="https://mottie.github.io/tablesorter/docs/" target="_blank">TableSorter</a> plugin. JQuery and TableSorter are licensed under the <a href="https://tldrlegal.com/license/mit-license" target="_blank">MIT license</a>. SQLite is <a href="https://www.sqlite.com/copyright.html" target="_blank">public domain</a>.</p>
 	<hr>
 	<h3><?php $name; ?> Copyright Information</h3>
 	<?php echo $copyinfo; ?>

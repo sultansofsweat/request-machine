@@ -1,5 +1,5 @@
 <?php
-	//This is the MRS Function Core, to be included with all pages.
+	//This is the RM Function Core, to be included with all pages.
 ?>
 <?php
 	//Basic database functions
@@ -49,7 +49,7 @@
 			return $returns;
 		}
 		$debug=$dbase->exec("VACUUM");
-		sleep(10);
+		sleep(5);
 		if($debug === true)
 		{
 			$returns[0]=true;
@@ -3655,7 +3655,7 @@
 				while($entry=$result->fetchArray(SQLITE3_ASSOC))
 				{
 					//Set up data format
-					$request=array("id"=>-1,"name"=>"ERROR","ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the MRS to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
+					$request=array("id"=>-1,"name"=>"ERROR","ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the Request Machine to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
 					//Get data from result
 					if(isset($entry["ID"]))
 					{
@@ -3783,7 +3783,7 @@
 					while($entry=$result->fetchArray(SQLITE3_ASSOC))
 					{
 						//Set up data format
-						$request=array("id"=>$id,"name"=>"ERROR","ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the MRS to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
+						$request=array("id"=>$id,"name"=>"ERROR","ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the Request Machine to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
 						//Get data from result
 						if(isset($entry["Name"]))
 						{
@@ -3911,7 +3911,7 @@
 					while($entry=$result->fetchArray(SQLITE3_ASSOC))
 					{
 						//Set up data format
-						$request=array("id"=>-1,"name"=>$username,"ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the MRS to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
+						$request=array("id"=>-1,"name"=>$username,"ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the Request Machine to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
 						//Get data from result
 						if(isset($entry["ID"]))
 						{
@@ -4039,7 +4039,7 @@
 					while($entry=$result->fetchArray(SQLITE3_ASSOC))
 					{
 						//Set up data format
-						$request=array("id"=>-1,"name"=>"ERROR","ip"=>$ip,"mode"=>2,"details"=>"Failed to obtain request. Treat the MRS to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
+						$request=array("id"=>-1,"name"=>"ERROR","ip"=>$ip,"mode"=>2,"details"=>"Failed to obtain request. Treat the Request Machine to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
 						//Get data from result
 						if(isset($entry["ID"]))
 						{
@@ -4167,7 +4167,7 @@
 					while($entry=$result->fetchArray(SQLITE3_ASSOC))
 					{
 						//Set up data format
-						$request=array("id"=>-1,"name"=>"ERROR","ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the MRS to the Floppy Disk Avalance.","time"=>0,"status"=>$status,"comment"=>NULL,"response"=>NULL);
+						$request=array("id"=>-1,"name"=>"ERROR","ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the Request Machine to the Floppy Disk Avalance.","time"=>0,"status"=>$status,"comment"=>NULL,"response"=>NULL);
 						//Get data from result
 						if(isset($entry["ID"]))
 						{
@@ -4292,7 +4292,7 @@
 				while($entry=$result->fetchArray(SQLITE3_ASSOC))
 				{
 					//Set up data format
-					$request=array("id"=>-1,"name"=>"ERROR","ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the MRS to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
+					$request=array("id"=>-1,"name"=>"ERROR","ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the Request Machine to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
 					//Get data from result
 					if(isset($entry["ID"]))
 					{
@@ -4420,7 +4420,7 @@
 					while($entry=$result->fetchArray(SQLITE3_ASSOC))
 					{
 						//Set up data format
-						$request=array("id"=>$id,"name"=>"ERROR","ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the MRS to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
+						$request=array("id"=>$id,"name"=>"ERROR","ip"=>"0.0.0.0","mode"=>2,"details"=>"Failed to obtain request. Treat the Request Machine to the Floppy Disk Avalance.","time"=>0,"status"=>0,"comment"=>NULL,"response"=>NULL);
 						//Get data from result
 						if(isset($entry["Name"]))
 						{
@@ -4874,7 +4874,7 @@
 				while($entry=$result->fetchArray(SQLITE3_ASSOC))
 				{
 					//Set up data format
-					$report=array("id"=>-1,"ip"=>"0.0.0.0","request"=>1,"reason"=>"Failed to obtain report. Someone probably tortured the MRS with the latest Prepubescent Carl \"hit\".","unread"=>0);
+					$report=array("id"=>-1,"ip"=>"0.0.0.0","request"=>1,"reason"=>"Failed to obtain report. Someone probably tortured the Request Machine with the latest Prepubescent Carl \"hit\".","unread"=>0);
 					//Get data from result
 					if(isset($entry["ID"]))
 					{
@@ -4948,7 +4948,7 @@
 					while($entry=$result->fetchArray(SQLITE3_ASSOC))
 					{
 						//Set up data format
-						$report=array("id"=>$id,"ip"=>"0.0.0.0","request"=>1,"reason"=>"Failed to obtain report. Someone probably tortured the MRS with the latest Prepubescent Carl \"hit\".","unread"=>0);
+						$report=array("id"=>$id,"ip"=>"0.0.0.0","request"=>1,"reason"=>"Failed to obtain report. Someone probably tortured the Request Machine with the latest Prepubescent Carl \"hit\".","unread"=>0);
 						//Get data from result
 						if(isset($entry["IP"]))
 						{
@@ -5018,7 +5018,7 @@
 				while($entry=$result->fetchArray(SQLITE3_ASSOC))
 				{
 					//Set up data format
-					$report=array("id"=>-1,"ip"=>"0.0.0.0","request"=>1,"reason"=>"Failed to obtain report. Someone probably tortured the MRS with the latest Prepubescent Carl \"hit\".","unread"=>0);
+					$report=array("id"=>-1,"ip"=>"0.0.0.0","request"=>1,"reason"=>"Failed to obtain report. Someone probably tortured the Request Machine with the latest Prepubescent Carl \"hit\".","unread"=>0);
 					//Get data from result
 					if(isset($entry["ID"]))
 					{
@@ -6524,30 +6524,30 @@
 			return new UpgradeReturn(9,"CANNOT_OPEN_ARCHIVE");
 		}
 	}
-	//Function for backing up the MRS' existing files
+	//Function for backing up the RM's existing files
 	function back_up_mrs()
 	{
 		$debug=@mkdir("backup-frontend");
 		if($debug !== true)
 		{
-			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to create backup directory for MRS frontend, terminating process.");
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to create backup directory for Request Machine frontend, terminating process.");
 			return new UpgradeReturn(10);
 		}
-		insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Created backup directory for MRS frontend.");
+		insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Created backup directory for Request Machine frontend.");
 		$debug=@mkdir("backup-backend");
 		if($debug !== true)
 		{
-			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to create backup directory for MRS backend, terminating process.");
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to create backup directory for Request Machine backend, terminating process.");
 			return new UpgradeReturn(11);
 		}
-		insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Created backup directory for MRS backend.");
+		insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Created backup directory for Request Machine backend.");
 		$debug=@mkdir("backup-db");
 		if($debug !== true)
 		{
-			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to create backup directory for MRS databases, terminating process.");
+			insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Failed to create backup directory for Request Machine databases, terminating process.");
 			return new UpgradeReturn(12);
 		}
-		insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Created backup directory for MRS databases.");
+		insert_system_log($_SERVER['REMOTE_ADDR'],date("g:i:s"),"functions.php","Created backup directory for Request Machine databases.");
 		$returns=array(0,0);
 		$files=@glob("*.php");
 		foreach($files as $file)

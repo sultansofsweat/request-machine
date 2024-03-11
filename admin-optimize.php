@@ -71,7 +71,7 @@
     <meta name="description" content="Microwave ovens.">
     <meta name="keywords" content="music, request, system, microwave, oven, russians, gpx, spoooooorts">
 	<link rel="shortcut icon" href="favicon/active.ico">
-    <title><?php echo $name; ?> Music Request System: Optimize Database</title>
+    <title><?php echo $name; ?> Request Machine: Optimize Database</title>
 	<script type="text/javascript" src="backend/jquery.js"></script>
 	<script type="text/javascript" src="backend/jquery.tablesorter.js"></script>
 	<script type="text/javascript" src="backend/jquery.tablesorter.widgets.js"></script>
@@ -120,7 +120,7 @@
 			}
 		}
 	?>
-	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Music Request System: Optimize Database</h1>
+	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Request Machine: Optimize Database</h1>
 	<p>This will optimize and reduce the file sizes of the system databases. It is <b>permanent</b> but likely won't summon any Furdon gas even if it goes wrong.</p>
 	<p>File sizes before optimization:<br>
 	<?php

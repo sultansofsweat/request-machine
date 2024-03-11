@@ -129,7 +129,7 @@
     <meta name="description" content="Microwave ovens.">
     <meta name="keywords" content="music, request, system, microwave, oven, russians, gpx, spoooooorts">
 	<link rel="shortcut icon" href="favicon/active.ico">
-    <title><?php echo $name; ?> Music Request System: Reset To Defaults</title>
+    <title><?php echo $name; ?> Request Machine: Reset To Defaults</title>
 	<script type="text/javascript" src="backend/jquery.js"></script>
 	<script type="text/javascript" src="backend/jquery.tablesorter.js"></script>
 	<script type="text/javascript" src="backend/jquery.tablesorter.widgets.js"></script>
@@ -178,7 +178,7 @@
 			}
 		}
 	?>
-	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Music Request System: Reset Settings to Default Values</h1>
+	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Request Machine: Reset Settings to Default Values</h1>
 	<p><b>IMPORTANT:</b> this action is at least semi-permanent! Make sure this is what you actually want to do, otherwise you may risk being buried in Furhead socks.</p>
 	<form method="post" action="admin-resdef.php">
 	<input type="submit" value="Reset settings"><input type="reset" value="De-select All"><br>

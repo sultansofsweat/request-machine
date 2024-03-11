@@ -66,7 +66,7 @@
     <meta name="description" content="Microwave ovens.">
     <meta name="keywords" content="music, request, system, microwave, oven, russians, gpx, spoooooorts">
 	<link rel="shortcut icon" href="favicon/active.ico">
-    <title><?php echo $name; ?> Music Request System: Juicy Statistics</title>
+    <title><?php echo $name; ?> Request Machine: Juicy Statistics</title>
 	<script type="text/javascript" src="backend/jquery.js"></script>
 	<script type="text/javascript" src="backend/jquery.tablesorter.js"></script>
 	<script type="text/javascript" src="backend/jquery.tablesorter.widgets.js"></script>
@@ -101,7 +101,7 @@
     <![endif]-->
   </head>
   <body>
-	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Music Request System: User Posting Statistics</h1>
+	<h1 style="text-align:center; text-decoration:underline;"><?php echo $name; ?> Request Machine: User Posting Statistics</h1>
 	<p><a href="admin-maps.php?clear=y">Clear statistics</a> WARNING: this is <b>IMMEDIATE</b> and <b><u>IRREVERSIBLE</u></b>!!!</p>
 	<table id="stats" class="tablesorter-ice">
 	<thead>
